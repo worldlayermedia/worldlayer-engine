@@ -1,0 +1,45 @@
+{
+  "version": "0.1",
+  "project": "worldlayer",
+  "title": "Worldlayer MVP Camera Test",
+  "format": "youtube_16_9",
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "scenes": [
+    {
+      "id": "scene_01",
+      "name": "Global View",
+      "duration": 5,
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 12000000,
+        "flightDuration": 5
+      }
+    },
+    {
+      "id": "scene_02",
+      "name": "Canada",
+      "duration": 5,
+      "camera": {
+        "longitude": -106.3468,
+        "latitude": 56.1304,
+        "altitude": 3500000,
+        "flightDuration": 5
+      }
+    },
+    {
+      "id": "scene_03",
+      "name": "Toronto",
+      "duration": 5,
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 15000,
+        "flightDuration": 5
+      }
+    }
+  ]
+}

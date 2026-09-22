@@ -1,3 +1,4 @@
+import { runVideoJob } from "../video/videoJob.js";
 import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
@@ -113,6 +114,7 @@ export function createApplicationTools({
     getRenderGovernorDiagnostics,
     surfaceServices: operations.surface,
     requestRender: governorRequestRender,
+    runVideoJob: () => runVideoJob(viewer),
   };
   const debug = window.__godsEyeView;
   defer(() => {
