@@ -3,17 +3,28 @@ import { createCameraController } from "./cameraController.js";
 export function createSceneExecutor(viewer) {
   const cameraController = createCameraController(viewer);
 
-  async function executeScene(scene) {
-    console.log(
-      `[Worldlayer] Starting ${scene.id}: ${scene.name}`
-    );
+async function executeScene(scene) {
+  console.log(
+    `[Worldlayer] Starting ${scene.id}: ${scene.name}`
+  );
 
-    await cameraController.flyTo(scene.camera);
+  window.__worldlayerCurrentScene = scene.id;
 
-    console.log(
-      `[Worldlayer] Completed ${scene.id}: ${scene.name}`
-    );
-  }
+  await cameraController.flyTo(scene.camera);
+
+  window.dispatchEvent(
+    new CustomEvent("worldlayer:scene-complete", {
+      detail: {
+        id: scene.id,
+        name: scene.name,
+      },
+    })
+  );
+
+  console.log(
+    `[Worldlayer] Completed ${scene.id}: ${scene.name}`
+  );
+}
 
   async function executeJob(videoJob) {
     if (!videoJob?.scenes?.length) {
