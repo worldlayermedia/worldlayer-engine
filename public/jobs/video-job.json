@@ -1,11 +1,18 @@
 {
-  "version": "0.1",
+  "version": "0.2",
   "project": "worldlayer",
   "title": "Worldlayer MVP Camera Test",
-  "format": "youtube_16_9",
-  "resolution": {
-    "width": 1920,
-    "height": 1080
+  "output": {
+    "filename": "worldlayer-mvp",
+    "format": "mp4"
+  },
+  "video": {
+    "format": "youtube_16_9",
+    "resolution": {
+      "width": 1920,
+      "height": 1080
+    },
+    "fps": 30
   },
   "scenes": [
     {
@@ -33,7 +40,7 @@
     {
       "id": "scene_03",
       "name": "Toronto",
-      "duration": 5,
+      "duration": 8,
       "camera": {
         "longitude": -79.3832,
         "latitude": 43.6532,
