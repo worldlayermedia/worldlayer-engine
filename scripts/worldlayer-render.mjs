@@ -2,6 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer';
 
 const BASE_URL =
@@ -11,11 +12,70 @@ const output = path.resolve('renders');
 
 fs.mkdirSync(output, { recursive: true });
 
-console.log('[Worldlayer] Starting renderer...');
+const videoPath = path.join(
+  output,
+  'worldlayer-mvp.webm'
+);
+
+const mp4Path = path.join(
+  output,
+  'worldlayer-mvp.mp4'
+);
+
+function convertToMp4(input, output) {
+  return new Promise((resolve, reject) => {
+    console.log('[Worldlayer] Converting to MP4...');
+
+    const ffmpeg = spawn(
+      'ffmpeg',
+      [
+        '-y',
+        '-i',
+        input,
+        '-c:v',
+        'libx264',
+        '-preset',
+        'medium',
+        '-crf',
+        '18',
+        '-pix_fmt',
+        'yuv420p',
+        '-movflags',
+        '+faststart',
+        '-an',
+        output,
+      ],
+      {
+        stdio: 'inherit',
+      }
+    );
+
+    ffmpeg.on('error', reject);
+
+    ffmpeg.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(
+          new Error(
+            `FFmpeg exited with code ${code}`
+          )
+        );
+      }
+    });
+  });
+}
+
+console.log('[Worldlayer] Starting video recorder...');
 
 const browser = await puppeteer.launch({
   headless: false,
-  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  args: [
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--force-device-scale-factor=1',
+    '--window-size=1920,1080',
+  ],
 });
 
 const page = await browser.newPage();
@@ -24,15 +84,23 @@ try {
   await page.setViewport({
     width: 1920,
     height: 1080,
+    deviceScaleFactor: 1,
   });
 
-  console.log('[Worldlayer] Opening God\'s Eye View...');
+  console.log(
+    '[Worldlayer] Opening God\'s Eye View...'
+  );
 
-  await page.goto(`${BASE_URL}/?welcome=0`, {
-    waitUntil: 'domcontentloaded',
-  });
+  await page.goto(
+    `${BASE_URL}/?welcome=0`,
+    {
+      waitUntil: 'domcontentloaded',
+    }
+  );
 
-  console.log('[Worldlayer] Waiting for engine...');
+  console.log(
+    '[Worldlayer] Waiting for engine...'
+  );
 
   await page.waitForFunction(
     () =>
@@ -47,61 +115,59 @@ try {
 
   console.log('[Worldlayer] Engine ready.');
 
-  await page.evaluate(() => {
-    window.__worldlayerCompletedScenes = [];
+  console.log(
+    '[Worldlayer] Starting screencast...'
+  );
 
-    window.addEventListener(
-      'worldlayer:scene-complete',
-      (event) => {
-        window.__worldlayerCompletedScenes.push(
-          event.detail.id
-        );
-      }
-    );
+  const recorder = await page.screencast({
+    path: videoPath,
   });
 
-  console.log('[Worldlayer] Running video job...');
+  console.log('[Worldlayer] Recording...');
 
-  const jobPromise = page.evaluate(async () => {
+  console.log(
+    '[Worldlayer] Running video job...'
+  );
+
+  await page.evaluate(async () => {
     await window.__godsEyeView.runVideoJob();
   });
 
-  for (const sceneId of [
-    'scene_01',
-    'scene_02',
-    'scene_03',
-  ]) {
-    await page.waitForFunction(
-      (id) =>
-        window.__worldlayerCompletedScenes?.includes(id),
-      {
-        timeout: 30000,
-      },
-      sceneId
-    );
+  console.log(
+    '[Worldlayer] Video job completed.'
+  );
 
-    const filename = path.join(
-      output,
-      `${sceneId}.png`
-    );
+  // Give the renderer a moment to capture
+  // the final settled frame.
+  await new Promise((resolve) =>
+    setTimeout(resolve, 1000)
+  );
 
-    await page.screenshot({
-      path: filename,
-    });
+  await recorder.stop();
 
-    console.log(
-      `[Worldlayer] Captured ${sceneId}.png`
-    );
-  }
+  console.log(
+    `[Worldlayer] WebM saved: ${videoPath}`
+  );
 
-  await jobPromise;
+  await convertToMp4(
+    videoPath,
+    mp4Path
+  );
 
-  console.log('[Worldlayer] Video job completed.');
+  console.log(
+    `[Worldlayer] MP4 saved: ${mp4Path}`
+  );
 } catch (error) {
-  console.error('[Worldlayer] Render failed:', error);
+  console.error(
+    '[Worldlayer] Recording failed:',
+    error
+  );
+
   process.exitCode = 1;
 } finally {
   await browser.close();
 }
 
-console.log('[Worldlayer] Renderer finished.');
+console.log(
+  '[Worldlayer] Renderer finished.'
+);
