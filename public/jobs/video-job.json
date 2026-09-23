@@ -37,7 +37,6 @@
         "flightDuration": 5
       }
     },
-
     {
       "id": "scene_03",
       "name": "Toronto",
@@ -51,11 +50,23 @@
         "roll": 0,
         "flightDuration": 5
       },
-      "movement": {
-        "type": "orbit",
-        "degrees": 60,
-        "duration": 8
-      }
+      "movements": [
+        {
+          "type": "orbit",
+          "degrees": 45,
+          "duration": 3,
+          "easing": "easeInOut"
+        },
+        {
+          "type": "pan",
+          "horizontalMeters": 1800,
+          "verticalMeters": 400,
+          "duration": 2,
+          "easing": "linear"
+        },
+        { "type": "zoom", "factor": 0.75, "duration": 2, "easing": "easeOut" },
+        { "type": "hold", "duration": 1 }
+      ]
     }
   ]
 }

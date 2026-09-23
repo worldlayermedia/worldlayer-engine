@@ -1,3 +1,6 @@
+import { easingFunctions } from './easing.js';
+import { sceneMovements } from './movementList.js';
+
 function fail(message) {
   throw new Error(`Worldlayer: ${message}`);
 }
@@ -85,16 +88,70 @@ export function validateVideoJob(job) {
       if (scene.camera[field] !== undefined)
         number(scene.camera[field], `${path}.camera.${field}`);
     }
-    if (scene.movement !== undefined) {
-      object(scene.movement, `${path}.movement`);
-      if (scene.movement.type !== 'orbit')
-        fail(`${path}.movement.type "${scene.movement.type}" is unsupported.`);
-      number(scene.movement.duration, `${path}.movement.duration`, {
+    if (scene.movement !== undefined && scene.movements !== undefined)
+      fail(`${path} cannot define both movement and movements.`);
+    if (scene.movements !== undefined && !Array.isArray(scene.movements))
+      fail(`${path}.movements must be an array.`);
+    for (const [movementIndex, movement] of sceneMovements(scene).entries()) {
+      const movementPath =
+        scene.movements === undefined
+          ? `${path}.movement`
+          : `${path}.movements[${movementIndex}]`;
+      object(movement, movementPath);
+      if (!['orbit', 'pan', 'zoom', 'hold'].includes(movement.type))
+        fail(`${movementPath}.type "${movement.type}" is unsupported.`);
+      number(movement.duration, `${movementPath}.duration`, {
         min: Number.EPSILON,
       });
-      number(scene.movement.degrees, `${path}.movement.degrees`);
+      if (
+        movement.easing !== undefined &&
+        !Object.hasOwn(easingFunctions, movement.easing)
+      )
+        fail(`${movementPath}.easing "${movement.easing}" is unsupported.`);
+      if (movement.type === 'orbit') {
+        number(movement.degrees, `${movementPath}.degrees`);
+        if (movement.target !== undefined) {
+          object(movement.target, `${movementPath}.target`);
+          number(
+            movement.target.longitude,
+            `${movementPath}.target.longitude`,
+            { min: -180, max: 180 },
+          );
+          number(movement.target.latitude, `${movementPath}.target.latitude`, {
+            min: -90,
+            max: 90,
+          });
+          if (movement.target.altitude !== undefined)
+            number(
+              movement.target.altitude,
+              `${movementPath}.target.altitude`,
+              { min: 0 },
+            );
+        }
+      }
+      if (movement.type === 'pan') {
+        if (
+          movement.horizontalMeters === undefined &&
+          movement.verticalMeters === undefined
+        )
+          fail(`${movementPath} requires horizontalMeters or verticalMeters.`);
+        for (const field of ['horizontalMeters', 'verticalMeters']) {
+          if (movement[field] !== undefined)
+            number(movement[field], `${movementPath}.${field}`);
+        }
+      }
+      if (movement.type === 'zoom') {
+        number(movement.factor, `${movementPath}.factor`, {
+          min: Number.EPSILON,
+        });
+      }
     }
-    const timed = scene.camera.flightDuration + (scene.movement?.duration ?? 0);
+    const timed =
+      scene.camera.flightDuration +
+      sceneMovements(scene).reduce(
+        (total, movement) => total + movement.duration,
+        0,
+      );
     if (timed > scene.duration + 1e-9)
       fail(`${path} timed operations exceed scene.duration.`);
   }

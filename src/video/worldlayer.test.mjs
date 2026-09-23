@@ -28,8 +28,11 @@ test('invalid durations fail', () => {
     /Worldlayer:.*timed operations exceed/,
   );
   job.scenes[2].duration = 13;
-  job.scenes[2].movement.duration = -1;
-  assert.throws(() => validateVideoJob(job), /Worldlayer:.*movement.duration/);
+  job.scenes[2].movements[0].duration = -1;
+  assert.throws(
+    () => validateVideoJob(job),
+    /Worldlayer:.*movements\[0\].duration/,
+  );
 });
 test('duplicate scene IDs fail', () => {
   const job = fixture();
@@ -38,7 +41,7 @@ test('duplicate scene IDs fail', () => {
 });
 test('unsupported movement fails', () => {
   const job = fixture();
-  job.scenes[2].movement.type = 'pan';
+  job.scenes[2].movements[0].type = 'track';
   assert.throws(() => validateVideoJob(job), /Worldlayer:.*unsupported/);
 });
 test('timing subtracts every timed operation', () => {
@@ -65,6 +68,9 @@ async function runScene(scene) {
     const cameraController = {
       flyTo: async () => calls.push('fly'),
       orbit: async () => calls.push('orbit'),
+      pan: async () => calls.push('pan'),
+      zoom: async () => calls.push('zoom'),
+      hold: async (movement) => calls.push(`hold:${movement.duration}`),
     };
     const executor = createSceneExecutor(
       { camera: {} },
@@ -81,11 +87,31 @@ async function runScene(scene) {
 test('scene with only flyTo has no extra hold', async () => {
   assert.deepEqual(await runScene(fixture().scenes[0]), ['fly']);
 });
-test('scene with flyTo and orbit has no extra hold', async () => {
-  assert.deepEqual(await runScene(fixture().scenes[2]), ['fly', 'orbit']);
+test('legacy movement remains compatible', async () => {
+  const scene = fixture().scenes[2];
+  scene.movement = scene.movements[0];
+  delete scene.movements;
+  scene.duration = 8;
+  assert.deepEqual(await runScene(scene), ['fly', 'orbit']);
 });
-test('scene with flyTo, orbit, and hold uses only remaining time', async () => {
+test('scene executes movement array in order without extra hold', async () => {
+  assert.deepEqual(await runScene(fixture().scenes[2]), [
+    'fly',
+    'orbit',
+    'pan',
+    'zoom',
+    'hold:1',
+  ]);
+});
+test('scene with movements and remaining time uses automatic hold', async () => {
   const scene = fixture().scenes[2];
   scene.duration = 15;
-  assert.deepEqual(await runScene(scene), ['fly', 'orbit', 2000]);
+  assert.deepEqual(await runScene(scene), [
+    'fly',
+    'orbit',
+    'pan',
+    'zoom',
+    'hold:1',
+    2000,
+  ]);
 });

@@ -1,6 +1,7 @@
 import { createCameraController } from './cameraController.js';
 import { validateVideoJob } from './jobValidation.js';
 import { calculateSceneTiming } from './sceneTiming.js';
+import { sceneMovements } from './movementList.js';
 
 function wait(milliseconds) {
   return new Promise((resolve) => {
@@ -12,10 +13,6 @@ export function createSceneExecutor(
   viewer,
   { cameraController = createCameraController(viewer), sleep = wait } = {},
 ) {
-  const movements = {
-    orbit: (config) => cameraController.orbit(config),
-  };
-
   async function executeScene(scene) {
     console.log(`[Worldlayer] Starting ${scene.id}: ${scene.name}`);
 
@@ -25,8 +22,8 @@ export function createSceneExecutor(
 
     await cameraController.flyTo(scene.camera);
 
-    if (scene.movement) {
-      await movements[scene.movement.type](scene.movement);
+    for (const movement of sceneMovements(scene)) {
+      await cameraController[movement.type](movement, scene.camera);
     }
 
     if (holdDuration > 0) {
