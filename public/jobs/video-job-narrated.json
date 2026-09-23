@@ -1,0 +1,94 @@
+{
+  "version": "0.2",
+  "project": "worldlayer",
+  "title": "Worldlayer Toronto Narration Test",
+  "output": { "filename": "worldlayer-mvp-narrated", "format": "mp4" },
+  "video": {
+    "format": "youtube_16_9",
+    "resolution": { "width": 1920, "height": 1080 },
+    "fps": 30
+  },
+  "audio": { "narration": { "file": "/audio/worldlayer-toronto-dev.wav" } },
+  "captions": [
+    {
+      "start": 0,
+      "end": 4.5,
+      "text": "Every city begins as a point on the planet."
+    },
+    {
+      "start": 5,
+      "end": 9.5,
+      "text": "From above, Canada stretches across a vast landscape."
+    },
+    {
+      "start": 10,
+      "end": 15,
+      "text": "Now the camera descends toward Toronto."
+    },
+    {
+      "start": 15.5,
+      "end": 20,
+      "text": "A new perspective reveals the shape of the city."
+    },
+    {
+      "start": 20.5,
+      "end": 22.8,
+      "text": "Worldlayer brings the view into focus."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene_01",
+      "name": "Global View",
+      "duration": 5,
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 12000000,
+        "flightDuration": 5
+      }
+    },
+    {
+      "id": "scene_02",
+      "name": "Canada",
+      "duration": 5,
+      "camera": {
+        "longitude": -106.3468,
+        "latitude": 56.1304,
+        "altitude": 3500000,
+        "flightDuration": 5
+      }
+    },
+    {
+      "id": "scene_03",
+      "name": "Toronto",
+      "duration": 13,
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 15000,
+        "heading": 20,
+        "pitch": -55,
+        "roll": 0,
+        "flightDuration": 5
+      },
+      "movements": [
+        {
+          "type": "orbit",
+          "degrees": 45,
+          "duration": 3,
+          "easing": "easeInOut"
+        },
+        {
+          "type": "pan",
+          "horizontalMeters": 1800,
+          "verticalMeters": 400,
+          "duration": 2,
+          "easing": "linear"
+        },
+        { "type": "zoom", "factor": 0.75, "duration": 2, "easing": "easeOut" },
+        { "type": "hold", "duration": 1 }
+      ]
+    }
+  ]
+}

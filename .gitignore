@@ -21,3 +21,5 @@ pinokio/ENVIRONMENT
 pinokio/.installed
 .vscode/
 renders/
+/public/audio/*.wav
+/public/audio/*.mp3

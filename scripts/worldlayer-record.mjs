@@ -7,6 +7,8 @@ import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer';
 import { recordConfig } from './worldlayer-record-config.mjs';
 import { loadRenderJob, projectRoot } from './worldlayer-job-path.mjs';
+import { narrationConfig } from './worldlayer-audio-config.mjs';
+import { assembleMedia } from './worldlayer-media-assembly.mjs';
 
 const VITE_STARTUP_TIMEOUT_MS = 30_000;
 const ENGINE_READY_TIMEOUT_MS = 60_000;
@@ -135,59 +137,6 @@ async function stopVite(vite) {
   }
 }
 
-function convertToMp4(input, outputPath, fps, timeoutMs) {
-  return new Promise((resolve, reject) => {
-    console.log('[Worldlayer] Converting to MP4...');
-
-    const ffmpeg = spawn(
-      'ffmpeg',
-      [
-        '-y',
-        '-i',
-        input,
-        '-r',
-        String(fps),
-        '-c:v',
-        'libx264',
-        '-preset',
-        'medium',
-        '-crf',
-        '18',
-        '-pix_fmt',
-        'yuv420p',
-        '-movflags',
-        '+faststart',
-        '-an',
-        outputPath,
-      ],
-      {
-        stdio: 'inherit',
-      },
-    );
-
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      ffmpeg.kill('SIGKILL');
-    }, timeoutMs);
-    ffmpeg.on('error', (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
-
-    ffmpeg.on('close', (code) => {
-      clearTimeout(timer);
-      if (timedOut)
-        reject(new Error(`Worldlayer: FFmpeg timed out after ${timeoutMs}ms.`));
-      else if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Worldlayer: FFmpeg exited with code ${code}.`));
-      }
-    });
-  });
-}
-
 console.log('[Worldlayer] Starting video recorder...');
 let vite;
 let browser;
@@ -197,6 +146,7 @@ try {
     throw new Error('Worldlayer: provide at most one job path.');
   const { job, jobUrl } = loadRenderJob(process.argv[2] || DEFAULT_JOB_PATH);
   const config = recordConfig(job, output);
+  const narration = narrationConfig(job);
   fs.mkdirSync(output, { recursive: true });
 
   console.log('[Worldlayer] Starting local Vite server...');
@@ -269,19 +219,12 @@ try {
 
   console.log(`[Worldlayer] WebM saved: ${config.webmPath}`);
 
-  await convertToMp4(
-    config.webmPath,
-    config.mp4Path,
-    config.fps,
-    config.ffmpegTimeoutMs,
-  );
-  const mp4 = fs.existsSync(config.mp4Path)
-    ? fs.statSync(config.mp4Path)
-    : null;
-  if (!mp4?.isFile() || mp4.size === 0)
-    throw new Error('Worldlayer: MP4 output is missing or empty.');
-
-  console.log(`[Worldlayer] MP4 saved: ${config.mp4Path}`);
+  console.log('[Worldlayer] Assembling MP4...');
+  const media = await assembleMedia({ job, config, narration });
+  console.log(`[Worldlayer] MP4 saved: ${media.mp4Path}`);
+  if (media.captionedPath)
+    console.log(`[Worldlayer] Captioned MP4 saved: ${media.captionedPath}`);
+  if (media.srtPath) console.log(`[Worldlayer] SRT saved: ${media.srtPath}`);
 } catch (error) {
   console.error('[Worldlayer] Recording failed:', error);
   process.exitCode = 1;

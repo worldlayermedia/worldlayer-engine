@@ -59,6 +59,34 @@ export function validateVideoJob(job) {
     integer: true,
   });
   number(job.video.fps, 'video.fps', { min: 1 });
+  if (job.audio !== undefined) {
+    object(job.audio, 'audio');
+    object(job.audio.narration, 'audio.narration');
+    string(job.audio.narration.file, 'audio.narration.file');
+    if (
+      !/^\/audio\/[a-zA-Z0-9][a-zA-Z0-9._/-]*\.(wav|mp3)$/i.test(
+        job.audio.narration.file,
+      ) ||
+      job.audio.narration.file.split('/').includes('..')
+    )
+      fail('audio.narration.file must be a WAV or MP3 path inside /audio.');
+  }
+  if (job.captions !== undefined) {
+    if (!Array.isArray(job.captions)) fail('captions must be an array.');
+    let previousEnd = 0;
+    for (const [index, caption] of job.captions.entries()) {
+      const captionPath = `captions[${index}]`;
+      object(caption, captionPath);
+      number(caption.start, `${captionPath}.start`, { min: 0 });
+      number(caption.end, `${captionPath}.end`, { min: 0 });
+      if (caption.end <= caption.start)
+        fail(`${captionPath}.end must be after start.`);
+      if (caption.start < previousEnd)
+        fail(`${captionPath} overlaps or is out of order.`);
+      string(caption.text, `${captionPath}.text`);
+      previousEnd = caption.end;
+    }
+  }
   if (!Array.isArray(job.scenes) || job.scenes.length === 0)
     fail('scenes must be a nonempty array.');
 
@@ -155,5 +183,11 @@ export function validateVideoJob(job) {
     if (timed > scene.duration + 1e-9)
       fail(`${path} timed operations exceed scene.duration.`);
   }
+  const visualDuration = job.scenes.reduce(
+    (total, scene) => total + scene.duration,
+    0,
+  );
+  if (job.captions?.at(-1)?.end > visualDuration + 1e-9)
+    fail('captions exceed the visual job duration.');
   return job;
 }
