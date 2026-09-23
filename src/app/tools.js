@@ -114,7 +114,7 @@ export function createApplicationTools({
     getRenderGovernorDiagnostics,
     surfaceServices: operations.surface,
     requestRender: governorRequestRender,
-    runVideoJob: () => runVideoJob(viewer),
+    runVideoJob: (jobUrl) => runVideoJob(viewer, jobUrl),
   };
   const debug = window.__godsEyeView;
   defer(() => {
