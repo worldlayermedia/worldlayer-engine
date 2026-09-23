@@ -1,4 +1,4 @@
-import { runVideoJob } from "../video/videoJob.js";
+import { runVideoJob } from '../video/videoJob.js';
 import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';

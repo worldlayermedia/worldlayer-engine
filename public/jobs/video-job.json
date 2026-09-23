@@ -37,19 +37,25 @@
         "flightDuration": 5
       }
     },
+
     {
-  "id": "scene_03",
-  "name": "Toronto",
-  "duration": 5,
-  "camera": {
-    "longitude": -79.3832,
-    "latitude": 43.6532,
-    "altitude": 15000,
-    "heading": 20,
-    "pitch": -55,
-    "roll": 0,
-    "flightDuration": 5
-  }
-}
+      "id": "scene_03",
+      "name": "Toronto",
+      "duration": 13,
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 15000,
+        "heading": 20,
+        "pitch": -55,
+        "roll": 0,
+        "flightDuration": 5
+      },
+      "movement": {
+        "type": "orbit",
+        "degrees": 60,
+        "duration": 8
+      }
+    }
   ]
 }

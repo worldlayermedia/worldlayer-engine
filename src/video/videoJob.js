@@ -1,11 +1,11 @@
-import { createSceneExecutor } from "./sceneExecutor.js";
+import { createSceneExecutor } from './sceneExecutor.js';
 
-export async function runVideoJob(viewer, jobUrl = "/jobs/video-job.json") {
+export async function runVideoJob(viewer, jobUrl = '/jobs/video-job.json') {
   const response = await fetch(jobUrl);
 
   if (!response.ok) {
     throw new Error(
-      `Worldlayer: failed to load video job (${response.status}).`
+      `Worldlayer: failed to load video job (${response.status}).`,
     );
   }
 
