@@ -71,6 +71,34 @@ export function validateVideoJob(job) {
     )
       fail('audio.narration.file must be a WAV or MP3 path inside /audio.');
   }
+  if (job.narration !== undefined) {
+    if (job.audio?.narration !== undefined)
+      fail('narration and audio.narration cannot both be configured.');
+    object(job.narration, 'narration');
+    for (const field of Object.keys(job.narration)) {
+      if (!['text', 'scriptFile', 'provider', 'voice'].includes(field))
+        fail(
+          `narration.${field} is unsupported; provider settings belong outside the job.`,
+        );
+    }
+    string(job.narration.provider, 'narration.provider');
+    string(job.narration.voice, 'narration.voice');
+    const hasText = job.narration.text !== undefined;
+    const hasScriptFile = job.narration.scriptFile !== undefined;
+    if (hasText === hasScriptFile)
+      fail('narration requires exactly one of text or scriptFile.');
+    if (hasText) string(job.narration.text, 'narration.text');
+    if (hasScriptFile) {
+      string(job.narration.scriptFile, 'narration.scriptFile');
+      if (
+        !/^\/scripts\/[a-zA-Z0-9][a-zA-Z0-9._/-]*\.txt$/i.test(
+          job.narration.scriptFile,
+        ) ||
+        job.narration.scriptFile.split('/').includes('..')
+      )
+        fail('narration.scriptFile must be a TXT path inside /scripts.');
+    }
+  }
   if (job.captions !== undefined) {
     if (!Array.isArray(job.captions)) fail('captions must be an array.');
     let previousEnd = 0;

@@ -7,7 +7,7 @@ import { spawn } from 'node:child_process';
 import puppeteer from 'puppeteer';
 import { recordConfig } from './worldlayer-record-config.mjs';
 import { loadRenderJob, projectRoot } from './worldlayer-job-path.mjs';
-import { narrationConfig } from './worldlayer-audio-config.mjs';
+import { prepareNarration } from './worldlayer-prepare-narration.mjs';
 import { assembleMedia } from './worldlayer-media-assembly.mjs';
 
 const VITE_STARTUP_TIMEOUT_MS = 30_000;
@@ -146,8 +146,13 @@ try {
     throw new Error('Worldlayer: provide at most one job path.');
   const { job, jobUrl } = loadRenderJob(process.argv[2] || DEFAULT_JOB_PATH);
   const config = recordConfig(job, output);
-  const narration = narrationConfig(job);
   fs.mkdirSync(output, { recursive: true });
+  console.log('[Worldlayer] Preparing narration...');
+  const narration = await prepareNarration(job, { outputDirectory: output });
+  if (narration)
+    console.log(
+      `[Worldlayer] Narration ready: ${narration.path} (${narration.duration.toFixed(2)}s, ${narration.provider})`,
+    );
 
   console.log('[Worldlayer] Starting local Vite server...');
   ({ vite, baseUrl: config.baseUrl } = await startVite(jobUrl));
