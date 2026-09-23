@@ -19,10 +19,12 @@ export async function prepareNarration(
   } = {},
 ) {
   validateVideoJob(job);
-  const visualDuration = job.scenes.reduce(
-    (total, scene) => total + scene.duration,
-    0,
+  const requiresPlanning = job.scenes.some(
+    (scene) => scene.timing !== undefined || scene.duration === undefined,
   );
+  const visualDuration = requiresPlanning
+    ? null
+    : job.scenes.reduce((total, scene) => total + scene.duration, 0);
   if (job.audio?.narration) {
     const existing = narrationConfig(job, audioRoot);
     const duration = await durationProbe(existing.filePath, probeTimeoutMs);
@@ -91,7 +93,7 @@ export async function prepareNarration(
   const duration = await durationProbe(outputPath, probeTimeoutMs);
   if (!Number.isFinite(duration) || duration <= 0)
     throw new Error('Worldlayer: generated narration duration is invalid.');
-  if (duration > visualDuration + 1e-9)
+  if (visualDuration !== null && duration > visualDuration + 1e-9)
     throw new Error(
       `Worldlayer: generated narration duration ${duration.toFixed(2)}s exceeds visual duration ${visualDuration.toFixed(2)}s by ${(duration - visualDuration).toFixed(2)}s.`,
     );
@@ -101,6 +103,7 @@ export async function prepareNarration(
     duration,
     provider,
     voice,
+    text,
     captionTimings: result.captionTimings ?? null,
   };
 }

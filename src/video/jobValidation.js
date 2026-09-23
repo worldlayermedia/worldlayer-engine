@@ -59,6 +59,26 @@ export function validateVideoJob(job) {
     integer: true,
   });
   number(job.video.fps, 'video.fps', { min: 1 });
+  if (job.timeline !== undefined) {
+    object(job.timeline, 'timeline');
+    if (job.timeline.minimumSceneDuration !== undefined)
+      number(
+        job.timeline.minimumSceneDuration,
+        'timeline.minimumSceneDuration',
+        {
+          min: Number.EPSILON,
+        },
+      );
+  }
+  if (job.captionMode !== undefined) {
+    if (job.captionMode !== 'script') fail('captionMode must be "script".');
+    if (job.captions !== undefined)
+      fail('captionMode and manual captions cannot both be configured.');
+    if (!job.narration)
+      fail(
+        'captionMode "script" requires generated narration text or scriptFile.',
+      );
+  }
   if (job.audio !== undefined) {
     object(job.audio, 'audio');
     object(job.audio.narration, 'audio.narration');
@@ -126,7 +146,29 @@ export function validateVideoJob(job) {
     if (ids.has(scene.id)) fail(`duplicate scene id "${scene.id}".`);
     ids.add(scene.id);
     string(scene.name, `${path}.name`);
-    number(scene.duration, `${path}.duration`, { min: Number.EPSILON });
+    if (scene.timing !== undefined) {
+      object(scene.timing, `${path}.timing`);
+      if (scene.duration !== undefined)
+        fail(`${path} cannot define both duration and timing.`);
+      if (!['fixed', 'weighted'].includes(scene.timing.mode))
+        fail(`${path}.timing.mode must be "fixed" or "weighted".`);
+      if (scene.timing.mode === 'fixed') {
+        number(scene.timing.duration, `${path}.timing.duration`, {
+          min: Number.EPSILON,
+        });
+        if (scene.timing.weight !== undefined)
+          fail(`${path}.timing.weight is not valid for fixed timing.`);
+      } else {
+        if (scene.timing.duration !== undefined)
+          fail(`${path}.timing.duration is not valid for weighted timing.`);
+        if (scene.timing.weight !== undefined)
+          number(scene.timing.weight, `${path}.timing.weight`, {
+            min: Number.EPSILON,
+          });
+      }
+    } else if (scene.duration !== undefined) {
+      number(scene.duration, `${path}.duration`, { min: Number.EPSILON });
+    }
     object(scene.camera, `${path}.camera`);
     number(scene.camera.longitude, `${path}.camera.longitude`, {
       min: -180,
@@ -208,14 +250,24 @@ export function validateVideoJob(job) {
         (total, movement) => total + movement.duration,
         0,
       );
-    if (timed > scene.duration + 1e-9)
+    const knownDuration =
+      scene.timing?.mode === 'fixed' ? scene.timing.duration : scene.duration;
+    if (knownDuration !== undefined && timed > knownDuration + 1e-9)
       fail(`${path} timed operations exceed scene.duration.`);
   }
-  const visualDuration = job.scenes.reduce(
-    (total, scene) => total + scene.duration,
-    0,
+  const allDurationsKnown = job.scenes.every(
+    (scene) => scene.duration !== undefined || scene.timing?.mode === 'fixed',
   );
-  if (job.captions?.at(-1)?.end > visualDuration + 1e-9)
+  const visualDuration = allDurationsKnown
+    ? job.scenes.reduce(
+        (total, scene) => total + (scene.duration ?? scene.timing.duration),
+        0,
+      )
+    : null;
+  if (
+    visualDuration !== null &&
+    job.captions?.at(-1)?.end > visualDuration + 1e-9
+  )
     fail('captions exceed the visual job duration.');
   return job;
 }

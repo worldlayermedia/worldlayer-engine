@@ -9,6 +9,7 @@ import { recordConfig } from './worldlayer-record-config.mjs';
 import { loadRenderJob, projectRoot } from './worldlayer-job-path.mjs';
 import { prepareNarration } from './worldlayer-prepare-narration.mjs';
 import { assembleMedia } from './worldlayer-media-assembly.mjs';
+import { resolveVideoTimeline } from '../src/video/timelinePlanner.js';
 
 const VITE_STARTUP_TIMEOUT_MS = 30_000;
 const ENGINE_READY_TIMEOUT_MS = 60_000;
@@ -145,7 +146,6 @@ try {
   if (process.argv.length > 3)
     throw new Error('Worldlayer: provide at most one job path.');
   const { job, jobUrl } = loadRenderJob(process.argv[2] || DEFAULT_JOB_PATH);
-  const config = recordConfig(job, output);
   fs.mkdirSync(output, { recursive: true });
   console.log('[Worldlayer] Preparing narration...');
   const narration = await prepareNarration(job, { outputDirectory: output });
@@ -153,6 +153,14 @@ try {
     console.log(
       `[Worldlayer] Narration ready: ${narration.path} (${narration.duration.toFixed(2)}s, ${narration.provider})`,
     );
+  const resolved = resolveVideoTimeline(job, {
+    narrationDuration: narration?.duration,
+    narrationText: narration?.text,
+  });
+  const config = recordConfig(resolved.job, output);
+  console.log(
+    `[Worldlayer] Resolved timeline: ${JSON.stringify(resolved.timeline)}`,
+  );
 
   console.log('[Worldlayer] Starting local Vite server...');
   ({ vite, baseUrl: config.baseUrl } = await startVite(jobUrl));
@@ -210,7 +218,10 @@ try {
   console.log('[Worldlayer] Running video job...');
 
   await withTimeout(
-    page.evaluate((url) => window.__godsEyeView.runVideoJob(url), jobUrl),
+    page.evaluate(
+      (jobInput) => window.__godsEyeView.runVideoJob(jobInput),
+      resolved.changed ? resolved.job : jobUrl,
+    ),
     config.jobTimeoutMs,
     'video job',
   );
@@ -225,7 +236,7 @@ try {
   console.log(`[Worldlayer] WebM saved: ${config.webmPath}`);
 
   console.log('[Worldlayer] Assembling MP4...');
-  const media = await assembleMedia({ job, config, narration });
+  const media = await assembleMedia({ job: resolved.job, config, narration });
   console.log(`[Worldlayer] MP4 saved: ${media.mp4Path}`);
   if (media.captionedPath)
     console.log(`[Worldlayer] Captioned MP4 saved: ${media.captionedPath}`);

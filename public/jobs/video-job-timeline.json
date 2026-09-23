@@ -1,0 +1,98 @@
+{
+  "version": "0.2",
+  "project": "worldlayer",
+  "title": "Worldlayer Toronto Automatic Timeline Test",
+  "output": {
+    "filename": "worldlayer-mvp-timeline",
+    "format": "mp4"
+  },
+  "video": {
+    "format": "youtube_16_9",
+    "resolution": {
+      "width": 1920,
+      "height": 1080
+    },
+    "fps": 30
+  },
+  "scenes": [
+    {
+      "id": "scene_01",
+      "name": "Global View",
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 12000000,
+        "flightDuration": 5
+      },
+      "timing": {
+        "mode": "fixed",
+        "duration": 5
+      }
+    },
+    {
+      "id": "scene_02",
+      "name": "Canada",
+      "camera": {
+        "longitude": -106.3468,
+        "latitude": 56.1304,
+        "altitude": 3500000,
+        "flightDuration": 5
+      },
+      "timing": {
+        "mode": "weighted",
+        "weight": 1
+      }
+    },
+    {
+      "id": "scene_03",
+      "name": "Toronto",
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 15000,
+        "heading": 20,
+        "pitch": -55,
+        "roll": 0,
+        "flightDuration": 5
+      },
+      "movements": [
+        {
+          "type": "orbit",
+          "degrees": 45,
+          "duration": 3,
+          "easing": "easeInOut"
+        },
+        {
+          "type": "pan",
+          "horizontalMeters": 1800,
+          "verticalMeters": 400,
+          "duration": 2,
+          "easing": "linear"
+        },
+        {
+          "type": "zoom",
+          "factor": 0.75,
+          "duration": 2,
+          "easing": "easeOut"
+        },
+        {
+          "type": "hold",
+          "duration": 1
+        }
+      ],
+      "timing": {
+        "mode": "weighted",
+        "weight": 3
+      }
+    }
+  ],
+  "narration": {
+    "scriptFile": "/scripts/toronto-timeline.txt",
+    "provider": "mock",
+    "voice": "default"
+  },
+  "captionMode": "script",
+  "timeline": {
+    "minimumSceneDuration": 1
+  }
+}
