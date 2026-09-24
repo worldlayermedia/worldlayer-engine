@@ -3,6 +3,10 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { captionedFilename, captionsToSrt } from './worldlayer-captions.mjs';
 import { projectRoot } from './worldlayer-job-path.mjs';
+import {
+  editorialDuration,
+  timingDrift,
+} from './worldlayer-capture-timing.mjs';
 
 export function runMediaTool(command, args, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -100,6 +104,10 @@ function verifyFile(filePath) {
     );
 }
 
+export function editorialVideoFilter(captureTiming, fps) {
+  return `trim=start_frame=${captureTiming.startFrame}:end_frame=${captureTiming.endFrame},setpts=N/(${fps}*TB)`;
+}
+
 export function assertNarrationFits(
   audioDuration,
   visualDuration,
@@ -115,12 +123,17 @@ export async function assembleMedia({
   job,
   config,
   narration,
+  captureTiming,
   narrationToleranceSeconds = 0.5,
 }) {
-  const visualDuration = await mediaDuration(
-    config.webmPath,
-    config.ffmpegTimeoutMs,
-  );
+  if (
+    !captureTiming ||
+    Math.abs(captureTiming.plannedDuration - editorialDuration(job)) > 1e-9
+  )
+    throw new Error(
+      'Worldlayer: capture timing does not match the resolved job.',
+    );
+  const visualDuration = captureTiming.plannedDuration;
   if (narration) {
     const audioDuration = await mediaDuration(
       narration.filePath,
@@ -137,6 +150,10 @@ export async function assembleMedia({
   videoArgs.push('-map', '0:v:0');
   if (narration) videoArgs.push('-map', '1:a:0');
   videoArgs.push(
+    '-vf',
+    editorialVideoFilter(captureTiming, config.fps),
+    '-frames:v',
+    String(captureTiming.frameCount),
     '-r',
     String(config.fps),
     '-c:v',
@@ -156,8 +173,16 @@ export async function assembleMedia({
   videoArgs.push(config.mp4Path);
   await runMediaTool('ffmpeg', videoArgs, config.ffmpegTimeoutMs);
   verifyFile(config.mp4Path);
+  const finalDuration = await mediaDuration(
+    config.mp4Path,
+    config.ffmpegTimeoutMs,
+  );
+  if (!timingDrift(finalDuration, visualDuration, config.fps).withinOneFrame)
+    throw new Error(
+      `Worldlayer: final MP4 duration ${finalDuration.toFixed(3)}s differs from planned ${visualDuration.toFixed(3)}s by more than one frame.`,
+    );
 
-  if (!job.captions?.length) return { mp4Path: config.mp4Path };
+  if (!job.captions?.length) return { mp4Path: config.mp4Path, finalDuration };
   const srtPath = path.join(
     path.dirname(config.mp4Path),
     `${job.output.filename}.srt`,
@@ -166,7 +191,7 @@ export async function assembleMedia({
     path.dirname(config.mp4Path),
     captionedFilename(job.output.filename),
   );
-  if (job.captions.at(-1).end > visualDuration + 1e-9)
+  if (job.captions.at(-1).end > finalDuration + 1e-9)
     throw new Error('Worldlayer: captions exceed the rendered video duration.');
   fs.writeFileSync(srtPath, captionsToSrt(job.captions), 'utf8');
   const relativeSrt = path
@@ -204,5 +229,21 @@ export async function assembleMedia({
     config.ffmpegTimeoutMs,
   );
   verifyFile(captionedPath);
-  return { mp4Path: config.mp4Path, captionedPath, srtPath };
+  const captionedDuration = await mediaDuration(
+    captionedPath,
+    config.ffmpegTimeoutMs,
+  );
+  if (
+    !timingDrift(captionedDuration, visualDuration, config.fps).withinOneFrame
+  )
+    throw new Error(
+      `Worldlayer: captioned MP4 duration ${captionedDuration.toFixed(3)}s differs from planned ${visualDuration.toFixed(3)}s by more than one frame.`,
+    );
+  return {
+    mp4Path: config.mp4Path,
+    captionedPath,
+    srtPath,
+    finalDuration,
+    captionedDuration,
+  };
 }

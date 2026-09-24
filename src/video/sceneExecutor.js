@@ -48,11 +48,25 @@ export function createSceneExecutor(
     validateVideoJob(videoJob);
 
     console.log(`[Worldlayer] Starting job: ${videoJob.title}`);
+    window.dispatchEvent(
+      new CustomEvent('worldlayer:job-start', {
+        detail: {
+          timestamp: (performance.timeOrigin + performance.now()) / 1000,
+        },
+      }),
+    );
 
     for (const scene of videoJob.scenes) {
       await executeScene(scene);
     }
 
+    window.dispatchEvent(
+      new CustomEvent('worldlayer:job-complete', {
+        detail: {
+          timestamp: (performance.timeOrigin + performance.now()) / 1000,
+        },
+      }),
+    );
     console.log('[Worldlayer] Job completed.');
   }
 

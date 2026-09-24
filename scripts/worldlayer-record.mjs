@@ -10,6 +10,12 @@ import { loadRenderJob, projectRoot } from './worldlayer-job-path.mjs';
 import { prepareNarration } from './worldlayer-prepare-narration.mjs';
 import { assembleMedia } from './worldlayer-media-assembly.mjs';
 import { resolveVideoTimeline } from '../src/video/timelinePlanner.js';
+import {
+  createCaptureClock,
+  calculateEditorialTrim,
+  formatTimingSummary,
+} from './worldlayer-capture-timing.mjs';
+import { mediaDuration } from './worldlayer-media-assembly.mjs';
 
 const VITE_STARTUP_TIMEOUT_MS = 30_000;
 const ENGINE_READY_TIMEOUT_MS = 60_000;
@@ -142,6 +148,7 @@ console.log('[Worldlayer] Starting video recorder...');
 let vite;
 let browser;
 let recorder;
+let captureClock;
 try {
   if (process.argv.length > 3)
     throw new Error('Worldlayer: provide at most one job path.');
@@ -209,17 +216,43 @@ try {
   }
   console.log('[Worldlayer] Engine ready.');
   console.log('[Worldlayer] Starting screencast...');
+  captureClock = createCaptureClock(page.mainFrame().client);
   recorder = await page.screencast({
     path: config.webmPath,
     fps: config.fps,
   });
+  await withTimeout(
+    captureClock.firstFrameReady,
+    10_000,
+    'first capture frame',
+  );
 
   console.log('[Worldlayer] Recording...');
   console.log('[Worldlayer] Running video job...');
 
-  await withTimeout(
+  const jobTiming = await withTimeout(
     page.evaluate(
-      (jobInput) => window.__godsEyeView.runVideoJob(jobInput),
+      async (jobInput) => {
+        let started;
+        let completed;
+        const onStart = (event) => {
+          started = event.detail.timestamp;
+        };
+        const onComplete = (event) => {
+          completed = event.detail.timestamp;
+        };
+        window.addEventListener('worldlayer:job-start', onStart);
+        window.addEventListener('worldlayer:job-complete', onComplete);
+        try {
+          await window.__godsEyeView.runVideoJob(jobInput);
+          if (!Number.isFinite(started) || !Number.isFinite(completed))
+            throw new Error('Worldlayer: job timing markers were not emitted.');
+          return { started, completed };
+        } finally {
+          window.removeEventListener('worldlayer:job-start', onStart);
+          window.removeEventListener('worldlayer:job-complete', onComplete);
+        }
+      },
       resolved.changed ? resolved.job : jobUrl,
     ),
     config.jobTimeoutMs,
@@ -230,21 +263,44 @@ try {
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
+  const recordingStop = Date.now() / 1000;
   await withTimeout(recorder.stop(), FFMPEG_STOP_TIMEOUT_MS, 'recording stop');
   recorder = undefined;
 
   console.log(`[Worldlayer] WebM saved: ${config.webmPath}`);
+  const rawDuration = await mediaDuration(
+    config.webmPath,
+    config.ffmpegTimeoutMs,
+  );
+  const captureTiming = calculateEditorialTrim({
+    ...captureClock.snapshot(),
+    jobStart: jobTiming.started,
+    jobCompletion: jobTiming.completed,
+    recordingStop,
+    rawDuration,
+    plannedDuration: resolved.timeline.totalVisualDuration,
+    fps: config.fps,
+  });
+  captureClock.dispose();
+  captureClock = undefined;
 
   console.log('[Worldlayer] Assembling MP4...');
-  const media = await assembleMedia({ job: resolved.job, config, narration });
+  const media = await assembleMedia({
+    job: resolved.job,
+    config,
+    narration,
+    captureTiming,
+  });
   console.log(`[Worldlayer] MP4 saved: ${media.mp4Path}`);
   if (media.captionedPath)
     console.log(`[Worldlayer] Captioned MP4 saved: ${media.captionedPath}`);
   if (media.srtPath) console.log(`[Worldlayer] SRT saved: ${media.srtPath}`);
+  console.log(formatTimingSummary(captureTiming, media.finalDuration));
 } catch (error) {
   console.error('[Worldlayer] Recording failed:', error);
   process.exitCode = 1;
 } finally {
+  captureClock?.dispose();
   try {
     if (recorder)
       await withTimeout(
