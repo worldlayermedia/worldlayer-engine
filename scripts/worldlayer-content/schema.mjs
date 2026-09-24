@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 export const INTEGRITY_CATEGORIES = Object.freeze([
   'VERIFIED_FACT',
   'OBSERVED_DATA',
@@ -78,6 +80,18 @@ export function validateSource(source) {
   }
   if (source.localReference !== undefined)
     string(source.localReference, `source ${source.id} localReference`);
+  if (source.author !== undefined)
+    string(source.author, `source ${source.id} author`);
+  if (source.discovery !== undefined) {
+    if (
+      !Array.isArray(source.discovery) ||
+      !source.discovery.length ||
+      source.discovery.some(
+        (mode) => !['search', 'supplied', 'fixture'].includes(mode),
+      )
+    )
+      fail(`source ${source.id} discovery is unsupported.`);
+  }
   for (const field of ['publicationDate', 'accessedDate'])
     if (
       source[field] !== undefined &&
@@ -102,7 +116,48 @@ export function validateClaim(claim, sourceIds) {
       fail(`claim ${claim.id} references missing source ${id}.`);
   if (claim.status === 'verified' && !claim.sourceIds.length)
     fail(`verified claim ${claim.id} needs a source.`);
+  if (claim.evidence !== undefined) {
+    if (!Array.isArray(claim.evidence))
+      fail(`claim ${claim.id} evidence must be an array.`);
+    for (const evidence of claim.evidence) {
+      object(evidence, `claim ${claim.id} evidence`);
+      if (
+        !sourceIds.has(evidence.sourceId) ||
+        !claim.sourceIds.includes(evidence.sourceId)
+      )
+        fail(
+          `claim ${claim.id} evidence references missing source ${evidence.sourceId}.`,
+        );
+      string(evidence.excerpt, `claim ${claim.id} evidence excerpt`);
+      if (evidence.excerpt.length > 240)
+        fail(`claim ${claim.id} evidence excerpt is too long.`);
+      if (evidence.context !== undefined)
+        string(evidence.context, `claim ${claim.id} evidence context`);
+    }
+    if (claim.status === 'verified' && !claim.evidence.length)
+      fail(`verified claim ${claim.id} needs evidence.`);
+  }
+  if (claim.period !== undefined)
+    string(claim.period, `claim ${claim.id} period`);
   return claim;
+}
+
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object')
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonical(value[key])]),
+    );
+  return value;
+}
+
+export function researchDigest(packet) {
+  const { approval, researchId, ...content } = packet;
+  return createHash('sha256')
+    .update(JSON.stringify(canonical(content)))
+    .digest('hex');
 }
 
 export function validateResearchPacket(packet) {
@@ -146,7 +201,65 @@ export function validateResearchPacket(packet) {
   }
   object(packet.provenance, 'research provenance');
   string(packet.provenance.provider, 'research provider');
+  if (packet.provenance.provider === 'web') {
+    object(packet.discovery, 'research discovery');
+    if (
+      !['search', 'supplied_sources', 'mixed'].includes(packet.discovery.mode)
+    )
+      fail('research discovery mode is unsupported.');
+    if (!Array.isArray(packet.discovery.searchAttempts))
+      fail('research searchAttempts must be an array.');
+    if (
+      packet.discovery.searchAttempts.some(
+        (attempt) =>
+          !attempt ||
+          typeof attempt.query !== 'string' ||
+          !['success', 'failed'].includes(attempt.status),
+      )
+    )
+      fail('research search attempt is invalid.');
+    object(packet.run, 'research run');
+    if (
+      packet.run.provider !== 'web' ||
+      packet.run.discoveryMode !== packet.discovery.mode ||
+      Number.isNaN(Date.parse(packet.run.researchTimestamp))
+    )
+      fail('research run metadata is invalid.');
+    for (const field of [
+      'queryCount',
+      'successfulSearchCount',
+      'failedSearchCount',
+      'suppliedUrlCount',
+      'fetchedSourceCount',
+    ])
+      if (!Number.isInteger(packet.run[field]) || packet.run[field] < 0)
+        fail(`research run ${field} must be a nonnegative integer.`);
+    if (
+      packet.run.queryCount !== packet.discovery.searchAttempts.length ||
+      packet.run.successfulSearchCount + packet.run.failedSearchCount !==
+        packet.run.queryCount ||
+      packet.run.fetchedSourceCount !== packet.sources.length ||
+      packet.discovery.sourceCount !== packet.sources.length ||
+      packet.sources.some((source) => !source.discovery)
+    )
+      fail('research run counts or source discovery do not match packet.');
+  }
+  if (
+    packet.researchId !== undefined &&
+    packet.researchId !== researchDigest(packet)
+  )
+    fail('research packet digest does not match its contents.');
   validateApproval(packet.approval);
+  if (
+    packet.approval.status === 'approved' &&
+    packet.approval.scope === 'web_research'
+  ) {
+    if (
+      packet.approval.digest !== researchDigest(packet) ||
+      packet.researchId !== packet.approval.digest
+    )
+      fail('research approval digest no longer matches packet contents.');
+  }
   return packet;
 }
 
@@ -171,13 +284,15 @@ export function validateApproval(approval) {
   if (!['pending', 'approved'].includes(approval.status))
     fail('research approval status must be pending or approved.');
   if (approval.status === 'approved') {
-    if (
-      approval.scope !== 'development_fixture' ||
-      approval.approvedBy !== 'explicit_fixture_opt_in'
-    )
-      fail(
-        'research approval needs explicit development fixture authorization.',
-      );
+    const fixture =
+      approval.scope === 'development_fixture' &&
+      approval.approvedBy === 'explicit_fixture_opt_in';
+    const web =
+      approval.scope === 'web_research' &&
+      approval.approvedBy === 'explicit_digest' &&
+      /^[a-f0-9]{64}$/.test(approval.digest ?? '');
+    if (!fixture && !web)
+      fail('research approval needs explicit authorization.');
   }
   return approval;
 }

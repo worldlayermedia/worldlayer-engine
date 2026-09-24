@@ -754,5 +754,10 @@
   "public/content/toronto-brief.json",
   "public/content/toronto-research-fixture.json",
   "src/video/cameraController.test.mjs",
-  "src/unitTestRunner.test.mjs"
+  "src/unitTestRunner.test.mjs",
+  "scripts/worldlayer-content/web-research.mjs",
+  "scripts/worldlayer-content/web-research.test.mjs",
+  "docs/WORLDLAYER-RESEARCH.md",
+  "scripts/worldlayer-content/search-discovery.mjs",
+  "scripts/worldlayer-content/source-fetcher.mjs"
 ]

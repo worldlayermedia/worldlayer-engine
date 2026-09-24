@@ -1,9 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { validateTopicBrief, validateClaimLedger } from './schema.mjs';
+import {
+  validateTopicBrief,
+  validateClaimLedger,
+  validateResearchPacket,
+} from './schema.mjs';
 import {
   researchTopic,
   approveDevelopmentFixture,
+  approveWebResearch,
   generateScript,
 } from './providers.mjs';
 import {
@@ -70,20 +75,49 @@ export async function prepareContent({
     `${slug}-research.json`,
     `${JSON.stringify(activePacket, null, 2)}\n`,
   );
+  return prepareApprovedContent({
+    brief,
+    packet: activePacket,
+    outputRoot,
+    researchPath,
+  });
+}
+
+function writeLedger(packet, researchDirectory, slug) {
   const ledger = validateClaimLedger(
     {
       version: '0.1',
-      topic: brief.title,
-      claims: activePacket.claims,
+      topic: packet.topic,
+      claims: packet.claims,
     },
-    activePacket,
+    packet,
   );
   const claimsPath = writeArtifact(
     researchDirectory,
     `${slug}-claims.json`,
     `${JSON.stringify(ledger, null, 2)}\n`,
   );
-  const script = await generateScript({ brief, packet: activePacket });
+  return { ledger, claimsPath };
+}
+
+async function prepareApprovedContent({
+  brief,
+  packet,
+  outputRoot,
+  researchPath,
+  existingLedger,
+}) {
+  validateTopicBrief(brief);
+  validateResearchPacket(packet);
+  if (packet.approval.status !== 'approved')
+    throw new Error(
+      'Worldlayer: research must be approved before script generation.',
+    );
+  const slug = `${contentSlug(brief.title)}${packet.provenance.provider === 'web' ? '-web' : ''}`;
+  const researchDirectory = outputDirectory(outputRoot, 'research');
+  const { ledger, claimsPath } =
+    existingLedger ?? writeLedger(packet, researchDirectory, slug);
+  const script = await generateScript({ brief, packet });
   const scriptsDirectory = outputDirectory(outputRoot, 'scripts');
   const scriptPath = writeArtifact(
     scriptsDirectory,
@@ -132,7 +166,7 @@ export async function prepareContent({
   );
   return {
     status: 'prepared',
-    packet: activePacket,
+    packet,
     ledger,
     script,
     plan,
@@ -144,4 +178,66 @@ export async function prepareContent({
     planPath,
     jobPath,
   };
+}
+
+export async function prepareWebResearch({
+  brief,
+  outputRoot,
+  search,
+  fetchPage,
+  now,
+  seedUrls,
+}) {
+  validateTopicBrief(brief);
+  const packet = await researchTopic({
+    brief,
+    provider: 'web',
+    options: { search, fetchPage, now, seedUrls },
+  });
+  const directory = outputDirectory(outputRoot, 'research');
+  const slug = `${contentSlug(brief.title)}-web`;
+  const researchPath = writeArtifact(
+    directory,
+    `${slug}-research.json`,
+    `${JSON.stringify(packet, null, 2)}\n`,
+  );
+  const { ledger, claimsPath } = writeLedger(packet, directory, slug);
+  return {
+    status: 'awaiting_approval',
+    packet,
+    ledger,
+    researchPath,
+    claimsPath,
+  };
+}
+
+export async function continueWebResearch({
+  brief,
+  packet,
+  expectedDigest,
+  outputRoot,
+  researchPath,
+}) {
+  validateTopicBrief(brief);
+  if (packet.topic !== brief.title)
+    throw new Error(
+      'Worldlayer: approved research topic does not match brief.',
+    );
+  const approved = approveWebResearch(packet, expectedDigest);
+  const directory = outputDirectory(outputRoot, 'research');
+  const slug = `${contentSlug(brief.title)}-web`;
+  const expectedPath = path.join(directory, `${slug}-research.json`);
+  if (path.resolve(researchPath) !== expectedPath)
+    throw new Error('Worldlayer: approval artifact path does not match topic.');
+  writeArtifact(
+    directory,
+    `${slug}-research.json`,
+    `${JSON.stringify(approved, null, 2)}\n`,
+  );
+  return prepareApprovedContent({
+    brief,
+    packet: approved,
+    outputRoot,
+    researchPath: expectedPath,
+  });
 }

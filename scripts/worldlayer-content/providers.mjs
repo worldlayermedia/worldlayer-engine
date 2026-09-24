@@ -5,7 +5,9 @@ import {
   validateResearchPacket,
   approvedClaims,
   validateScriptArtifact,
+  researchDigest,
 } from './schema.mjs';
+import { researchWeb } from './web-research.mjs';
 
 function inside(root, candidate) {
   const relative = path.relative(root, candidate);
@@ -48,6 +50,7 @@ export const researchProviders = Object.freeze({
     packet.approval = { status: 'pending' };
     return validateResearchPacket(packet);
   },
+  web: researchWeb,
 });
 
 export async function researchTopic({ brief, provider, options = {} }) {
@@ -77,6 +80,27 @@ export function approveDevelopmentFixture(
     status: 'approved',
     scope: 'development_fixture',
     approvedBy: 'explicit_fixture_opt_in',
+  };
+  return validateResearchPacket(approved);
+}
+
+export function approveWebResearch(packet, expectedDigest) {
+  validateResearchPacket(packet);
+  if (
+    packet.provenance.provider !== 'web' ||
+    packet.approval.status !== 'pending' ||
+    packet.researchId !== expectedDigest ||
+    researchDigest(packet) !== expectedDigest
+  )
+    throw new Error(
+      'Worldlayer: web research approval requires the exact pending artifact digest.',
+    );
+  const approved = structuredClone(packet);
+  approved.approval = {
+    status: 'approved',
+    scope: 'web_research',
+    approvedBy: 'explicit_digest',
+    digest: expectedDigest,
   };
   return validateResearchPacket(approved);
 }

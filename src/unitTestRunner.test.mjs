@@ -37,6 +37,16 @@ test('normal unit test discovery includes content pipeline tests once', () => {
   );
 });
 
+test('normal unit test discovery includes web research tests once', () => {
+  const files = discoverUnitTestFiles();
+  const web = 'scripts/worldlayer-content/web-research.test.mjs';
+  assert.equal(files.filter((file) => file === web).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === web).length,
+    1,
+  );
+});
+
 test('unit runner serializes only GC-bracketed allocation microbenchmarks', () => {
   const ordinary = [
     'src/data/manager.test.mjs',
