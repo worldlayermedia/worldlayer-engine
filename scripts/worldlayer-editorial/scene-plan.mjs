@@ -23,7 +23,11 @@ export function validatePlanningJob(job) {
   if (typeof job.video.format !== 'string' || !job.video.format || !Number.isInteger(job.video.resolution.width) || job.video.resolution.width < 1 || !Number.isInteger(job.video.resolution.height) || job.video.resolution.height < 1 || !Number.isFinite(job.video.fps) || job.video.fps <= 0) fail('planning video configuration is invalid.');
   object(job.planning, 'planning');
   if (job.scenes !== undefined) fail('planning jobs cannot define scenes.');
-  if (!/^\/scripts\/[a-zA-Z0-9][a-zA-Z0-9._/-]*\.txt$/i.test(job.planning.scriptFile ?? '') || job.planning.scriptFile.split('/').includes('..')) fail('planning.scriptFile must be a TXT path inside /scripts.');
+  const hasScriptFile = job.planning.scriptFile !== undefined;
+  const hasScriptArtifact = job.planning.scriptArtifact !== undefined;
+  if (hasScriptFile === hasScriptArtifact) fail('planning requires exactly one scriptFile or scriptArtifact.');
+  if (hasScriptFile && (!/^\/scripts\/[a-zA-Z0-9][a-zA-Z0-9._/-]*\.txt$/i.test(job.planning.scriptFile) || job.planning.scriptFile.split('/').includes('..'))) fail('planning.scriptFile must be a TXT path inside /scripts.');
+  if (hasScriptArtifact && (!/^renders\/scripts\/[a-zA-Z0-9][a-zA-Z0-9._-]*-script\.json$/.test(job.planning.scriptArtifact) || job.planning.scriptArtifact.split('/').includes('..'))) fail('planning.scriptArtifact must be a safe script artifact reference.');
   object(job.planning.locations, 'planning.locations');
   for (const [key, value] of Object.entries(job.planning.locations)) {
     if (!/^[a-zA-Z0-9_-]+$/.test(key)) fail(`invalid location key "${key}".`);
@@ -80,12 +84,14 @@ export function createScenePlan(job, script) {
       template: job.planning.intentTemplates?.[visualIntent] ?? visualIntent,
       resolution };
   });
-  return validateScenePlan({ version: '0.1', title: job.title, source: { scriptFile: job.planning.scriptFile }, beats });
+  return validateScenePlan({ version: '0.1', title: job.title, source: job.planning.scriptFile ? { scriptFile: job.planning.scriptFile } : { scriptArtifact: job.planning.scriptArtifact }, beats });
 }
 
-export function videoJobFromScenePlan(sourceJob, plan) {
+export function videoJobFromScenePlan(sourceJob, plan, { narrationText } = {}) {
   validatePlanningJob(sourceJob);
   validateScenePlan(plan);
+  if (sourceJob.planning.scriptArtifact && (typeof narrationText !== 'string' || !narrationText.trim()))
+    fail('planning.scriptArtifact requires narration text for video-job generation.');
   const anchor = Object.values(sourceJob.planning.locations)[0];
   const scenes = plan.beats.map((beat, index) => sceneFromBeat(beat, beat.location ?? anchor, index));
   if (sourceJob.planning.fixedIntroDuration !== undefined) scenes[0].timing = { mode: 'fixed', duration: sourceJob.planning.fixedIntroDuration };
@@ -93,7 +99,7 @@ export function videoJobFromScenePlan(sourceJob, plan) {
   const job = {
     version: sourceJob.version, project: sourceJob.project, title: sourceJob.title,
     output: structuredClone(sourceJob.output), video: structuredClone(sourceJob.video), scenes,
-    narration: { ...sourceJob.narration, scriptFile: sourceJob.planning.scriptFile },
+    narration: { ...sourceJob.narration, ...(narrationText === undefined ? { scriptFile: sourceJob.planning.scriptFile } : { text: narrationText }) },
     ...(sourceJob.captionMode ? { captionMode: sourceJob.captionMode } : {}),
     timeline: { minimumSceneDuration: sourceJob.planning.minimumSceneDuration ?? 1 },
   };

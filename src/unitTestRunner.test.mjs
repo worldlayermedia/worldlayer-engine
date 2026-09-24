@@ -14,7 +14,27 @@ test('normal unit test discovery includes editorial planning tests once', () => 
   const files = discoverUnitTestFiles();
   const editorial = 'scripts/worldlayer-editorial/scene-plan.test.mjs';
   assert.equal(files.filter((file) => file === editorial).length, 1);
-  assert.equal(buildUnitTestPlan(files).parallel.filter((file) => file === editorial).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === editorial)
+      .length,
+    1,
+  );
+});
+
+test('normal unit test discovery includes content pipeline tests once', () => {
+  const files = discoverUnitTestFiles();
+  const content = 'scripts/worldlayer-content/content.test.mjs';
+  const camera = 'src/video/cameraController.test.mjs';
+  assert.equal(files.filter((file) => file === content).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === content).length,
+    1,
+  );
+  assert.equal(files.filter((file) => file === camera).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === camera).length,
+    1,
+  );
 });
 
 test('unit runner serializes only GC-bracketed allocation microbenchmarks', () => {
@@ -33,10 +53,16 @@ test('unit runner serializes only GC-bracketed allocation microbenchmarks', () =
 
   assert.deepEqual(plan.parallel, ordinary);
   assert.deepEqual(plan.serializedAllocations, ALLOCATION_TEST_FILES);
-  assert.equal(plan.parallel.some((file) => ALLOCATION_TEST_FILES.includes(file)), false);
+  assert.equal(
+    plan.parallel.some((file) => ALLOCATION_TEST_FILES.includes(file)),
+    false,
+  );
   for (const file of ALLOCATION_TEST_FILES) {
     assert.deepEqual(allocationTestArgs(file), [
-      '--expose-gc', '--test', '--test-concurrency=1', file,
+      '--expose-gc',
+      '--test',
+      '--test-concurrency=1',
+      file,
     ]);
   }
   assert.throws(
@@ -63,13 +89,18 @@ test('allocation runtime calibration is explicit and pinned to Node 24', () => {
 test('npm test stays green on every supported engine, not only the calibrated one', () => {
   // package.json wiring: `npm test` must invoke this runner, and the engines
   // range it advertises must not be narrower than what the runner tolerates.
-  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
+  const pkg = JSON.parse(
+    readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+  );
   assert.equal(pkg.scripts.test, 'node scripts/run-unit-tests.mjs');
   const enginesNode = String(pkg.engines?.node || '');
   assert.ok(enginesNode, 'engines.node must be declared');
   // The runner throws for uncalibrated runtimes ONLY behind the explicit
   // opt-in env; by default it skips, so a supported non-24 engine cannot fail.
-  const runner = readFileSync(new URL('../scripts/run-unit-tests.mjs', import.meta.url), 'utf8');
+  const runner = readFileSync(
+    new URL('../scripts/run-unit-tests.mjs', import.meta.url),
+    'utf8',
+  );
   assert.match(runner, /GEV_REQUIRE_ALLOCATION_GATE/);
   assert.match(runner, /SKIPPED .*allocation microbenchmarks/);
 });

@@ -1,0 +1,20 @@
+{
+  "version": "0.1",
+  "title": "Toronto: A City Shaped by Connections",
+  "language": "en",
+  "targetDurationSeconds": 105,
+  "angle": "Explain Toronto through its lake setting, neighborhoods, routes, and changing scale.",
+  "audience": "Curious viewers who want a geographic introduction to Toronto.",
+  "locations": {
+    "toronto": { "longitude": -79.3832, "latitude": 43.6532 }
+  },
+  "keyQuestions": [
+    "How does the lake shape the city's setting?",
+    "How do routes connect its neighborhoods?"
+  ],
+  "exclusions": [
+    "Current population rankings",
+    "Unsourced economic superlatives"
+  ],
+  "requiredPoints": ["Lake Ontario setting", "Connections across the region"]
+}

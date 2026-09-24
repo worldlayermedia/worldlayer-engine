@@ -1,0 +1,162 @@
+{
+  "version": "0.1",
+  "topic": "Toronto: A City Shaped by Connections",
+  "researchQuestions": [
+    "How does the lake shape the city's setting?",
+    "How do routes connect its neighborhoods?"
+  ],
+  "provenance": {
+    "provider": "fixture",
+    "fixture": true,
+    "notice": "Development fixture only. No live research or independent fact check was performed."
+  },
+  "sources": [
+    {
+      "id": "source_001",
+      "title": "Toronto geography fixture notes",
+      "publisher": "Worldlayer development fixture",
+      "localReference": "/content/toronto-research-fixture.json#notes.geography",
+      "sourceType": "fixture"
+    },
+    {
+      "id": "source_002",
+      "title": "Waterfront fixture notes",
+      "publisher": "Worldlayer development fixture",
+      "localReference": "/content/toronto-research-fixture.json#notes.waterfront",
+      "sourceType": "fixture"
+    },
+    {
+      "id": "source_003",
+      "title": "Urban form fixture notes",
+      "publisher": "Worldlayer development fixture",
+      "localReference": "/content/toronto-research-fixture.json#notes.urbanForm",
+      "sourceType": "fixture"
+    },
+    {
+      "id": "source_004",
+      "title": "Transport fixture notes",
+      "publisher": "Worldlayer development fixture",
+      "localReference": "/content/toronto-research-fixture.json#notes.transport",
+      "sourceType": "fixture"
+    }
+  ],
+  "notes": {
+    "geography": "Fixture premise: Toronto sits on the northern shore of Lake Ontario in southern Ontario; the lake is one of the Great Lakes.",
+    "waterfront": "Fixture premise: Toronto's waterfront includes the harbour, islands, shoreline public spaces, and views of downtown.",
+    "urbanForm": "Fixture premise: downtown, residential neighborhoods, parks, streets, and varied building heights are visible at different map scales.",
+    "transport": "Fixture premise: streets, rail corridors, and public transit connect the center with other neighborhoods and the wider region."
+  },
+  "findings": [
+    {
+      "text": "The lake provides the broad geographic setting.",
+      "claimIds": ["claim_001", "claim_002", "claim_003"]
+    },
+    {
+      "text": "Changing camera scale reveals different parts of the urban form.",
+      "claimIds": ["claim_004", "claim_005", "claim_006"]
+    },
+    {
+      "text": "Routes link places across the city and region.",
+      "claimIds": ["claim_007", "claim_008", "claim_009"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "text": "From a global view, Toronto occupies a small point on the northern edge of Lake Ontario. The surrounding water and land provide the geographic frame for a city whose local streets are almost invisible at this scale.",
+      "status": "verified",
+      "category": "VERIFIED_FACT",
+      "sourceIds": ["source_001"]
+    },
+    {
+      "id": "claim_002",
+      "text": "The Great Lakes form a regional setting that is much larger than Toronto itself. Lake Ontario lies beside the city, placing the downtown waterfront within a connected system of water, shores, and nearby communities.",
+      "status": "verified",
+      "category": "VERIFIED_FACT",
+      "sourceIds": ["source_001", "source_002"]
+    },
+    {
+      "id": "claim_003",
+      "text": "Toronto's waterfront joins the harbour, islands, shoreline spaces, and the edge of downtown. Seen from above, these elements show how the built city meets the lake rather than ending at a simple straight boundary.",
+      "status": "verified",
+      "category": "VERIFIED_FACT",
+      "sourceIds": ["source_002"]
+    },
+    {
+      "id": "claim_004",
+      "text": "A closer view of Toronto reveals a dense downtown beside the water. Streets and blocks spread away from that center, while parks and residential areas interrupt the pattern of buildings with different shapes and open spaces.",
+      "status": "verified",
+      "category": "OBSERVED_DATA",
+      "sourceIds": ["source_003"]
+    },
+    {
+      "id": "claim_005",
+      "text": "At street scale, Toronto becomes a collection of neighborhoods rather than one skyline. The change in viewpoint makes individual blocks and local connections easier to see, adding detail that a distant camera cannot show.",
+      "status": "verified",
+      "category": "OBSERVED_DATA",
+      "sourceIds": ["source_003"]
+    },
+    {
+      "id": "claim_006",
+      "text": "An orbit around Toronto's waterfront changes the relationship between skyline, shoreline, and islands. Each angle reveals a different overlap among these features, although the underlying geography stays in the same place.",
+      "status": "verified",
+      "category": "OBSERVED_DATA",
+      "sourceIds": ["source_002", "source_003"]
+    },
+    {
+      "id": "claim_007",
+      "text": "Routes across Toronto connect the waterfront and downtown with other parts of the city. Roads, rail corridors, and public transit provide several ways to move through the same geography, each with its own visible pattern.",
+      "status": "verified",
+      "category": "VERIFIED_FACT",
+      "sourceIds": ["source_004"]
+    },
+    {
+      "id": "claim_008",
+      "text": "A regional view makes those connections easier to compare. Some routes converge near the center, while others cross neighborhoods farther away; together they link places that might otherwise look separate in a close view.",
+      "status": "verified",
+      "category": "OBSERVED_DATA",
+      "sourceIds": ["source_004"]
+    },
+    {
+      "id": "claim_009",
+      "text": "Toronto's story can be told through changing scale: lake, waterfront, downtown, neighborhood, and route. Moving between these views gives each part its context and shows how the city fits within a wider region.",
+      "status": "verified",
+      "category": "OBSERVED_DATA",
+      "sourceIds": ["source_001", "source_002", "source_003", "source_004"]
+    },
+    {
+      "id": "claim_010",
+      "text": "An unsupported claim about a current population ranking should not enter the script.",
+      "status": "unresolved",
+      "category": "VERIFIED_FACT",
+      "sourceIds": []
+    },
+    {
+      "id": "claim_011",
+      "text": "A rough travel time would need a dated measurement and should not be narrated as a verified fact.",
+      "status": "partially_supported",
+      "category": "ESTIMATE",
+      "sourceIds": ["source_004"]
+    },
+    {
+      "id": "claim_012",
+      "text": "A speculative account of a future transit route is outside the scope of this fixture.",
+      "status": "excluded",
+      "category": "SPECULATION",
+      "sourceIds": []
+    }
+  ],
+  "uncertainties": [
+    "The fixture does not establish a current population rank.",
+    "No dated travel time measurement is supplied."
+  ],
+  "suggestedVisuals": [
+    { "description": "Globe to Great Lakes context", "locationKey": "toronto" },
+    {
+      "description": "Waterfront orbit and neighborhood approach",
+      "locationKey": "toronto"
+    },
+    { "description": "Regional route overview", "locationKey": "toronto" }
+  ],
+  "approval": { "status": "pending" }
+}

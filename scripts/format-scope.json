@@ -745,5 +745,14 @@
   "scripts/qa-director-interactions.mjs",
   "src/director/sharing/sharing.test.mjs",
   "scripts/qa-director-sharing.mjs",
-  "src/data/aisStreamSentinels.test.mjs"
+  "src/data/aisStreamSentinels.test.mjs",
+  "scripts/worldlayer-content.mjs",
+  "scripts/worldlayer-content/schema.mjs",
+  "scripts/worldlayer-content/providers.mjs",
+  "scripts/worldlayer-content/pipeline.mjs",
+  "scripts/worldlayer-content/content.test.mjs",
+  "public/content/toronto-brief.json",
+  "public/content/toronto-research-fixture.json",
+  "src/video/cameraController.test.mjs",
+  "src/unitTestRunner.test.mjs"
 ]

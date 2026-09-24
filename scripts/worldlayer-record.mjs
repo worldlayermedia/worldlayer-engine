@@ -100,12 +100,12 @@ async function startVite(jobUrl) {
         );
       }
       try {
-        const response = await fetch(baseUrl + jobUrl, {
+        const response = await fetch(baseUrl + (jobUrl ?? '/?welcome=0'), {
           signal: AbortSignal.timeout(1000),
         });
         if (
           response.ok &&
-          response.headers.get('content-type')?.includes('json')
+          (!jobUrl || response.headers.get('content-type')?.includes('json'))
         ) {
           return { vite, baseUrl };
         }
@@ -209,18 +209,20 @@ try {
     { timeout: ENGINE_READY_TIMEOUT_MS },
   );
 
-  const servedJob = await page.evaluate(async (url) => {
-    const response = await fetch(url);
-    if (!response.ok)
+  if (jobUrl) {
+    const servedJob = await page.evaluate(async (url) => {
+      const response = await fetch(url);
+      if (!response.ok)
+        throw new Error(
+          `Worldlayer: failed to load video job (${response.status}).`,
+        );
+      return response.json();
+    }, jobUrl);
+    if (JSON.stringify(servedJob) !== JSON.stringify(sourceJob)) {
       throw new Error(
-        `Worldlayer: failed to load video job (${response.status}).`,
+        'Worldlayer: job changed between validation and browser load.',
       );
-    return response.json();
-  }, jobUrl);
-  if (JSON.stringify(servedJob) !== JSON.stringify(sourceJob)) {
-    throw new Error(
-      'Worldlayer: job changed between validation and browser load.',
-    );
+    }
   }
   console.log('[Worldlayer] Engine ready.');
   console.log('[Worldlayer] Starting screencast...');
@@ -261,7 +263,7 @@ try {
           window.removeEventListener('worldlayer:job-complete', onComplete);
         }
       },
-      planned || resolved.changed ? resolved.job : jobUrl,
+      !jobUrl || planned || resolved.changed ? resolved.job : jobUrl,
     ),
     config.jobTimeoutMs,
     'video job',

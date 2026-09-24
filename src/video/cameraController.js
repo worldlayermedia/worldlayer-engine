@@ -1,6 +1,13 @@
 import { createMovementHandlers } from './movementHandlers.js';
 
-export function createCameraController(viewer) {
+export function createCameraController(
+  viewer,
+  {
+    now = () => performance.now(),
+    sleep = (milliseconds) =>
+      new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  } = {},
+) {
   if (!viewer?.camera) {
     throw new Error('Worldlayer: Cesium viewer or camera is unavailable.');
   }
@@ -12,6 +19,7 @@ export function createCameraController(viewer) {
   }
 
   async function flyTo(cameraConfig) {
+    const started = now();
     const {
       longitude,
       latitude,
@@ -24,7 +32,7 @@ export function createCameraController(viewer) {
 
     const destination = Cartesian3.fromDegrees(longitude, latitude, altitude);
 
-    return new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       viewer.camera.flyTo({
         destination,
         orientation: {
@@ -37,6 +45,10 @@ export function createCameraController(viewer) {
         cancel: () => reject(new Error('Worldlayer: camera flight cancelled.')),
       });
     });
+    // Cesium may complete early when the destination is already close. The
+    // configured flight still owns its full slot in the editorial timeline.
+    const remaining = flightDuration * 1000 - (now() - started);
+    if (remaining > 0) await sleep(remaining);
   }
 
   return {

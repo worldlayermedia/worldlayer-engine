@@ -6,6 +6,7 @@ import { validatePlanningJob } from './worldlayer-editorial/scene-plan.mjs';
 
 export const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const jobsRoot = path.join(projectRoot, 'public', 'jobs');
+const preparedRoot = path.join(projectRoot, 'renders', 'plans');
 
 function isWithin(directory, candidate) {
   const relative = path.relative(directory, candidate);
@@ -19,12 +20,14 @@ function isWithin(directory, candidate) {
 
 export function loadRenderJob(argument = 'public/jobs/video-job.json') {
   const requested = path.resolve(projectRoot, argument);
+  const prepared = isWithin(preparedRoot, requested);
+  const root = prepared ? preparedRoot : jobsRoot;
   if (
-    !isWithin(jobsRoot, requested) ||
+    !isWithin(root, requested) ||
     path.extname(requested).toLowerCase() !== '.json'
   ) {
     throw new Error(
-      'Worldlayer: job path must be a JSON file inside public/jobs.',
+      'Worldlayer: job path must be a JSON file inside public/jobs or renders/plans.',
     );
   }
 
@@ -36,8 +39,8 @@ export function loadRenderJob(argument = 'public/jobs/video-job.json') {
       throw new Error(`Worldlayer: job file does not exist: ${argument}`);
     throw error;
   }
-  if (!isWithin(fs.realpathSync(jobsRoot), realPath)) {
-    throw new Error('Worldlayer: job path escapes public/jobs.');
+  if (!isWithin(fs.realpathSync(root), realPath)) {
+    throw new Error('Worldlayer: job path escapes its allowed directory.');
   }
 
   let job;
@@ -52,6 +55,6 @@ export function loadRenderJob(argument = 'public/jobs/video-job.json') {
   else validateVideoJob(job);
 
   const relative = path.relative(jobsRoot, realPath);
-  const jobUrl = `/jobs/${relative.split(path.sep).map(encodeURIComponent).join('/')}`;
+  const jobUrl = prepared ? null : `/jobs/${relative.split(path.sep).map(encodeURIComponent).join('/')}`;
   return { job, jobUrl, filePath: realPath };
 }
