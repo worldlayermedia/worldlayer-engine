@@ -47,6 +47,16 @@ test('normal unit test discovery includes web research tests once', () => {
   );
 });
 
+test('normal unit test discovery includes trend tests once', () => {
+  const files = discoverUnitTestFiles();
+  const trends = 'scripts/worldlayer-trends/trends.test.mjs';
+  assert.equal(files.filter((file) => file === trends).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === trends).length,
+    1,
+  );
+});
+
 test('unit runner serializes only GC-bracketed allocation microbenchmarks', () => {
   const ordinary = [
     'src/data/manager.test.mjs',

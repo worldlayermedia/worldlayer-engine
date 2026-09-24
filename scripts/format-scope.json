@@ -759,5 +759,15 @@
   "scripts/worldlayer-content/web-research.test.mjs",
   "docs/WORLDLAYER-RESEARCH.md",
   "scripts/worldlayer-content/search-discovery.mjs",
-  "scripts/worldlayer-content/source-fetcher.mjs"
+  "scripts/worldlayer-content/source-fetcher.mjs",
+  "scripts/worldlayer-trends.mjs",
+  "scripts/worldlayer-trends/schema.mjs",
+  "scripts/worldlayer-trends/google-bigquery.mjs",
+  "scripts/worldlayer-trends/relevance.mjs",
+  "scripts/worldlayer-trends/providers.mjs",
+  "scripts/worldlayer-trends/pipeline.mjs",
+  "scripts/worldlayer-trends/topic-brief-validation.mjs",
+  "scripts/worldlayer-trends/trends.test.mjs",
+  "public/trends/canada-development-fixture.json",
+  "docs/WORLDLAYER-TRENDS.md"
 ]

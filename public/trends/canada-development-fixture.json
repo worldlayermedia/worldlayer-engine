@@ -1,0 +1,153 @@
+{
+  "version": "0.1",
+  "kind": "development_fixture",
+  "geo": "CA",
+  "window": "24h",
+  "description": "Synthetic Canada-oriented trend observations for deterministic development; not live Google Trends data.",
+  "trends": [
+    {
+      "query": "Toronto subway expansion map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 3,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Canada Arctic shipping route",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 5,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Vancouver port container traffic",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 7,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Ontario power grid map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 8,
+      "trendStatus": "active"
+    },
+    {
+      "query": "Montreal airport runway expansion",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 9,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Canada wildfire map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 12,
+      "trendStatus": "active"
+    },
+    {
+      "query": "Calgary flood risk map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 14,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "British Columbia highway tunnel",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 17,
+      "trendStatus": "unknown"
+    },
+    {
+      "query": "Ottawa bridge construction",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 19,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Canada aurora map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 21,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Atlantic ferry route",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 23,
+      "trendStatus": "lasted"
+    },
+    {
+      "query": "Canada election map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 25,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Arctic contested border map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 28,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Celebrity dating rumor",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 1,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Hockey score tonight",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 2,
+      "trendStatus": "active"
+    },
+    {
+      "query": "Movie trailer release",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 4,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Phone sale price",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 6,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Local incident store closure",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 11,
+      "trendStatus": "active"
+    },
+    {
+      "query": "Electric vehicles",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 15,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Northern lights tonight",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 16,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Canada satellite launch",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 18,
+      "trendStatus": "unknown"
+    },
+    {
+      "query": "Prairie rail corridor",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 20,
+      "trendStatus": "rising"
+    },
+    {
+      "query": "Quebec earthquake map",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 22,
+      "trendStatus": "active"
+    },
+    {
+      "query": "New coffee drink",
+      "observedAt": "2026-09-23T12:00:00.000Z",
+      "rank": 24,
+      "trendStatus": "unknown"
+    }
+  ]
+}

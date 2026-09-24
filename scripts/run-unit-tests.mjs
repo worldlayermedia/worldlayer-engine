@@ -27,6 +27,7 @@ export function discoverUnitTestFiles(root = process.cwd()) {
     path.join(root, 'src'),
     path.join(root, 'scripts', 'worldlayer-editorial'),
     path.join(root, 'scripts', 'worldlayer-content'),
+    path.join(root, 'scripts', 'worldlayer-trends'),
   ];
   const files = [];
   const visit = (directory) => {

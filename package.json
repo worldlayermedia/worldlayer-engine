@@ -46,7 +46,8 @@
     "check:boundaries": "node scripts/check-import-directions.mjs && node scripts/check-package-boundaries.mjs",
     "qa:transit": "node scripts/qa-transit.mjs",
     "worldlayer:render": "node scripts/worldlayer-record.mjs",
-    "worldlayer:content": "node scripts/worldlayer-content.mjs"
+    "worldlayer:content": "node scripts/worldlayer-content.mjs",
+    "worldlayer:trends": "node scripts/worldlayer-trends.mjs"
   },
   "dependencies": {
     "@mapbox/vector-tile": "^3.0.0",
