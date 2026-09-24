@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateVideoJob } from '../src/video/jobValidation.js';
+import { validatePlanningJob } from './worldlayer-editorial/scene-plan.mjs';
 
 export const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const jobsRoot = path.join(projectRoot, 'public', 'jobs');
@@ -47,7 +48,8 @@ export function loadRenderJob(argument = 'public/jobs/video-job.json') {
       throw new Error(`Worldlayer: invalid job JSON: ${error.message}`);
     throw error;
   }
-  validateVideoJob(job);
+  if (job.planning !== undefined) validatePlanningJob(job);
+  else validateVideoJob(job);
 
   const relative = path.relative(jobsRoot, realPath);
   const jobUrl = `/jobs/${relative.split(path.sep).map(encodeURIComponent).join('/')}`;

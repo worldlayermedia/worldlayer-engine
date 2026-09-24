@@ -1,0 +1,15 @@
+{
+  "version": "0.2",
+  "project": "worldlayer",
+  "title": "Toronto Editorial Development Story",
+  "output": { "filename": "worldlayer-toronto-editorial", "format": "mp4" },
+  "video": { "format": "youtube_16_9", "resolution": { "width": 1920, "height": 1080 }, "fps": 30 },
+  "narration": { "provider": "mock", "voice": "default" },
+  "captionMode": "script",
+  "planning": {
+    "scriptFile": "/scripts/toronto-story.txt",
+    "locations": { "toronto": { "longitude": -79.3832, "latitude": 43.6532 } },
+    "defaultLocation": "toronto",
+    "minimumSceneDuration": 1
+  }
+}

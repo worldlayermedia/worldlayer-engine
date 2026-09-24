@@ -6,8 +6,16 @@ import {
   allocationTestArgs,
   assertNode24AllocationRuntime,
   buildUnitTestPlan,
+  discoverUnitTestFiles,
   isCalibratedAllocationRuntime,
 } from '../scripts/run-unit-tests.mjs';
+
+test('normal unit test discovery includes editorial planning tests once', () => {
+  const files = discoverUnitTestFiles();
+  const editorial = 'scripts/worldlayer-editorial/scene-plan.test.mjs';
+  assert.equal(files.filter((file) => file === editorial).length, 1);
+  assert.equal(buildUnitTestPlan(files).parallel.filter((file) => file === editorial).length, 1);
+});
 
 test('unit runner serializes only GC-bracketed allocation microbenchmarks', () => {
   const ordinary = [

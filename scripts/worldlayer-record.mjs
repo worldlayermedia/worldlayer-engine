@@ -16,6 +16,7 @@ import {
   formatTimingSummary,
 } from './worldlayer-capture-timing.mjs';
 import { mediaDuration } from './worldlayer-media-assembly.mjs';
+import { prepareEditorialPlan } from './worldlayer-editorial/prepare-plan.mjs';
 
 const VITE_STARTUP_TIMEOUT_MS = 30_000;
 const ENGINE_READY_TIMEOUT_MS = 60_000;
@@ -152,8 +153,11 @@ let captureClock;
 try {
   if (process.argv.length > 3)
     throw new Error('Worldlayer: provide at most one job path.');
-  const { job, jobUrl } = loadRenderJob(process.argv[2] || DEFAULT_JOB_PATH);
+  const { job: sourceJob, jobUrl } = loadRenderJob(process.argv[2] || DEFAULT_JOB_PATH);
   fs.mkdirSync(output, { recursive: true });
+  const planned = sourceJob.planning ? prepareEditorialPlan(sourceJob, { outputDirectory: output }) : null;
+  const job = planned?.job ?? sourceJob;
+  if (planned) console.log(`[Worldlayer] Scene plan saved: ${planned.artifactPath} (${planned.plan.beats.length} beats)`);
   console.log('[Worldlayer] Preparing narration...');
   const narration = await prepareNarration(job, { outputDirectory: output });
   if (narration)
@@ -165,6 +169,10 @@ try {
     narrationText: narration?.text,
   });
   const config = recordConfig(resolved.job, output);
+  const recordingStopTimeoutMs = Math.max(
+    FFMPEG_STOP_TIMEOUT_MS,
+    Math.ceil(resolved.timeline.totalVisualDuration * 1000),
+  );
   console.log(
     `[Worldlayer] Resolved timeline: ${JSON.stringify(resolved.timeline)}`,
   );
@@ -209,7 +217,7 @@ try {
       );
     return response.json();
   }, jobUrl);
-  if (JSON.stringify(servedJob) !== JSON.stringify(job)) {
+  if (JSON.stringify(servedJob) !== JSON.stringify(sourceJob)) {
     throw new Error(
       'Worldlayer: job changed between validation and browser load.',
     );
@@ -253,7 +261,7 @@ try {
           window.removeEventListener('worldlayer:job-complete', onComplete);
         }
       },
-      resolved.changed ? resolved.job : jobUrl,
+      planned || resolved.changed ? resolved.job : jobUrl,
     ),
     config.jobTimeoutMs,
     'video job',
@@ -264,7 +272,7 @@ try {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const recordingStop = Date.now() / 1000;
-  await withTimeout(recorder.stop(), FFMPEG_STOP_TIMEOUT_MS, 'recording stop');
+  await withTimeout(recorder.stop(), recordingStopTimeoutMs, 'recording stop');
   recorder = undefined;
 
   console.log(`[Worldlayer] WebM saved: ${config.webmPath}`);
@@ -305,7 +313,7 @@ try {
     if (recorder)
       await withTimeout(
         recorder.stop(),
-        FFMPEG_STOP_TIMEOUT_MS,
+        Math.max(FFMPEG_STOP_TIMEOUT_MS, 120_000),
         'recording stop',
       );
   } catch (error) {
