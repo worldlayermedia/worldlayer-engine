@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { bigQueryRows, normalizeBigQueryRows } from './google-bigquery.mjs';
+import { bigQueryRows } from './google-bigquery.mjs';
 
 export const trendProviders = Object.freeze({
   fixture: async ({ fixturePath, geo, window }) => {
@@ -19,7 +19,7 @@ export const trendProviders = Object.freeze({
     return fixture.trends;
   },
   google_bigquery: async ({ geo, window, bigQueryRun }) =>
-    normalizeBigQueryRows(bigQueryRows({ geo, window, run: bigQueryRun }), geo),
+    bigQueryRows({ geo, window, run: bigQueryRun }),
   google_trending_now: async () => {
     throw new Error(
       'Worldlayer: Google Trends Trending Now has no configured supported retrieval adapter.',

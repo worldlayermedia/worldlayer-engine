@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { validateTopicBrief } from './topic-brief-validation.mjs';
 import { discoverTrends } from './providers.mjs';
+import { normalizeBigQueryRows } from './google-bigquery.mjs';
 import { normalizeTrends, validateOptions } from './schema.mjs';
 import { rankCandidates } from './relevance.mjs';
 
@@ -91,7 +92,9 @@ export async function runTrendDiscovery({
     fixturePath,
     bigQueryRun,
   });
-  const trends = normalizeTrends(raw, { geo, window });
+  const observations =
+    provider === 'google_bigquery' ? normalizeBigQueryRows(raw, geo) : raw;
+  const trends = normalizeTrends(observations, { geo, window });
   const candidates = rankCandidates(trends, {
     now: new Date(collectedAt),
     maxAgeHours,

@@ -14,18 +14,31 @@ export function bigQueryRows({ geo, window, run = spawnSync }) {
     throw new Error(
       'Worldlayer: Google Trends BigQuery is daily data and supports only the 7d window.',
     );
-  const result = run(
-    'bq',
-    [
-      'query',
-      '--use_legacy_sql=false',
-      '--format=json',
-      '--maximum_bytes_billed=1000000000',
-      `--parameter=geo:STRING:${geo}`,
-      GOOGLE_TRENDS_SQL,
-    ],
-    { encoding: 'utf8', timeout: 60000, maxBuffer: 2_000_000 },
-  );
+  if (!/^[A-Z]{2}$/.test(geo))
+    throw new Error(
+      'Worldlayer: Google Trends BigQuery geo must be a two-letter country code.',
+    );
+  const flags = [
+    'query',
+    '--use_legacy_sql=false',
+    '--format=json',
+    '--maximum_bytes_billed=2000000000',
+    `--parameter=geo:STRING:${geo}`,
+  ];
+  // Windows installs bq as bq.cmd. Pass SQL on stdin to avoid cmd quoting.
+  const windows = process.platform === 'win32';
+  const result = windows
+    ? run('cmd.exe', ['/d', '/s', '/c', `bq.cmd ${flags.join(' ')}`], {
+        encoding: 'utf8',
+        timeout: 60000,
+        maxBuffer: 2_000_000,
+        input: GOOGLE_TRENDS_SQL,
+      })
+    : run('bq', [...flags, GOOGLE_TRENDS_SQL], {
+        encoding: 'utf8',
+        timeout: 60000,
+        maxBuffer: 2_000_000,
+      });
   if (result.error?.code === 'ENOENT')
     throw new Error(
       'Worldlayer: Google Trends BigQuery requires the bq CLI and configured Google Cloud access.',

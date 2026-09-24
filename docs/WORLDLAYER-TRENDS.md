@@ -10,7 +10,7 @@ Trend observations answer **what Worldlayer might investigate**. They are never 
 npm run worldlayer:trends -- --provider fixture --geo CA --window 24h
 ```
 
-`google_bigquery` reads Google's daily international _top rising terms_ public dataset through the `bq` CLI. It supports only `7d` because the dataset is daily, not real-time Trending Now data. Its `observedAt` is a date, with no invented time of day. Install/configure the Google Cloud CLI and BigQuery access separately; use a project or BigQuery sandbox with public-dataset access. Credentials stay in the Google Cloud environment, never in job files or source control. The query binds the ISO country code, filters `refresh_date` to seven days, deduplicates terms across regions/days, caps results at 100, and sets a 1 GB billed-bytes ceiling. Dataset coverage may vary by country and date.
+`google_bigquery` reads Google's daily international _top rising terms_ public dataset through the `bq` CLI. It supports only `7d` because the dataset is daily, not real-time Trending Now data. Its `observedAt` is a date, with no invented time of day. Install/configure the Google Cloud CLI and BigQuery access separately; use a project or BigQuery sandbox with public-dataset access. Credentials stay in the Google Cloud environment, never in job files or source control. The query binds the ISO country code, filters `refresh_date` to seven days, deduplicates terms across regions/days, caps results at 100, and sets a 2 GB billed-bytes ceiling. Dataset coverage may vary by country and date.
 
 ```powershell
 npm run worldlayer:trends -- --provider google_bigquery --geo CA --window 7d

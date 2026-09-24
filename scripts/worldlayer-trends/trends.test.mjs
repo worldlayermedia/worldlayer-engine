@@ -93,12 +93,24 @@ test('BigQuery adapter uses a bounded daily international query and preserves da
     () => bigQueryRows({ geo: 'CA', window: '24h' }),
     /only the 7d window/,
   );
+  assert.throws(
+    () => bigQueryRows({ geo: 'CA & echo unsafe', window: '7d' }),
+    /two-letter country code/,
+  );
   const rows = bigQueryRows({
     geo: 'CA',
     window: '7d',
-    run: (_cmd, args) => {
-      assert.ok(args.includes('--parameter=geo:STRING:CA'));
-      assert.ok(args.some((arg) => arg.startsWith('--maximum_bytes_billed=')));
+    run: (command, args, options) => {
+      const invocation = args.join(' ');
+      assert.match(invocation, /--parameter=geo:STRING:CA/);
+      assert.match(invocation, /--maximum_bytes_billed=2000000000/);
+      if (process.platform === 'win32') {
+        assert.equal(command, 'cmd.exe');
+        assert.equal(options.input, GOOGLE_TRENDS_SQL);
+      } else {
+        assert.equal(command, 'bq');
+        assert.equal(args.at(-1), GOOGLE_TRENDS_SQL);
+      }
       return {
         status: 0,
         stdout:
@@ -123,10 +135,48 @@ test('Google provider returns raw observations through the shared contract', asy
         '[{"term":"Canada rail route","rank":2,"refresh_date":"2026-09-22","country_code":"CA"}]',
     }),
   });
-  const normalized = normalizeTrends(observations, { geo: 'CA', window: '7d' });
+  assert.deepEqual(observations[0], {
+    term: 'Canada rail route',
+    rank: 2,
+    refresh_date: '2026-09-22',
+    country_code: 'CA',
+  });
+  const normalized = normalizeTrends(
+    normalizeBigQueryRows(observations, 'CA'),
+    { geo: 'CA', window: '7d' },
+  );
   assert.equal(normalized.length, 1);
   assert.equal(normalized[0].sourceMetadata.retrievalMode, 'bigquery_daily');
   assert.equal(normalized[0].sourceMetadata.rawProviderId, undefined);
+});
+
+test('BigQuery raw artifact preserves provider rows before normalization', async () => {
+  const outputRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'worldlayer-google-raw-'),
+  );
+  const row = {
+    term: 'Canada rail route',
+    rank: 2,
+    refresh_date: '2026-09-22',
+    country_code: 'CA',
+    region_name: 'Ontario',
+  };
+  try {
+    const result = await runTrendDiscovery({
+      provider: 'google_bigquery',
+      geo: 'CA',
+      window: '7d',
+      maxAgeHours: 72,
+      outputRoot,
+      now,
+      bigQueryRun: () => ({ status: 0, stdout: JSON.stringify([row]) }),
+    });
+    const artifact = JSON.parse(fs.readFileSync(result.rawPath, 'utf8'));
+    assert.deepEqual(artifact.observations, [row]);
+    assert.equal(result.trends[0].sourceMetadata.regionName, 'Ontario');
+  } finally {
+    fs.rmSync(outputRoot, { recursive: true, force: true });
+  }
 });
 
 test('Worldlayer category scoring is explicit and does not mutate observed trends', () => {
