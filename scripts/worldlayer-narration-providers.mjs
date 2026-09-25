@@ -1,6 +1,7 @@
 import { generateNarration as generateMockNarration } from './worldlayer-providers/mock.mjs';
+import { generateNarration as generateOpenAINarration } from './worldlayer-providers/openai.mjs';
 
-const providers = Object.freeze({ mock: generateMockNarration });
+const providers = Object.freeze({ mock: generateMockNarration, openai: generateOpenAINarration });
 
 export async function generateNarration({
   provider,

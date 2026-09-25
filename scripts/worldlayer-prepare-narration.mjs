@@ -104,6 +104,8 @@ export async function prepareNarration(
     provider,
     voice,
     text,
+    chunkCount: result.chunkCount ?? null,
+    characterCount: result.characterCount ?? text.length,
     captionTimings: result.captionTimings ?? null,
   };
 }
