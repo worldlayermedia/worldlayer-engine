@@ -67,7 +67,9 @@ test('Azure registry, endpoint, default voice, SSML escaping, WAV and metadata',
     'riff-24khz-16bit-mono-pcm',
   );
   assert.match(observed.config.body, /Toronto &amp; &lt;Canada&gt; appears/);
-  assert.match(observed.config.body, /en-US-JennyNeural/);
+  assert.equal(DEFAULT_AZURE_VOICE, 'en-GB-RyanNeural');
+  assert.match(observed.config.body, /en-GB-RyanNeural/);
+  assert.match(observed.config.body, /xml:lang="en-GB"/);
   assert.equal(result.provider, 'azure');
   assert.equal(result.voice, DEFAULT_AZURE_VOICE);
   assert.equal(result.sampleRate, 24000);
@@ -84,6 +86,7 @@ test('Azure registry, endpoint, default voice, SSML escaping, WAV and metadata',
 test('configured Azure voice and region are used without changing registry contract', async () => {
   const input = request({ voice: 'en-CA-ClaraNeural' });
   input.options.env.AZURE_SPEECH_REGION = 'eastus';
+  input.options.env.WORLDLAYER_TTS_VOICE = 'en-US-GuyNeural';
   let url, body;
   input.options.fetchImpl = async (target, config) => {
     url = target;
@@ -94,6 +97,19 @@ test('configured Azure voice and region are used without changing registry contr
   assert.equal(url, azureEndpoint('eastus'));
   assert.match(body, /xml:lang="en-CA"/);
   assert.equal(result.voice, 'en-CA-ClaraNeural');
+});
+
+test('Azure environment voice overrides Worldlayer default when job voice is absent', async () => {
+  const input = request();
+  input.options.env.WORLDLAYER_TTS_VOICE = 'en-US-JennyNeural';
+  let body;
+  input.options.fetchImpl = async (_target, config) => {
+    body = config.body;
+    return response(wav());
+  };
+  const result = await generate(input);
+  assert.equal(result.voice, 'en-US-JennyNeural');
+  assert.match(body, /en-US-JennyNeural/);
 });
 
 test('Azure missing key, region, invalid region, and invalid voice fail before fetch', async () => {

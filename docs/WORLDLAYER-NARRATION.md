@@ -36,11 +36,10 @@ Azure is a separate production narration provider. Create an Azure AI Speech res
 ```json
 "narration": {
   "scriptFile": "/scripts/example.txt",
-  "provider": "azure",
-  "voice": "en-US-JennyNeural"
+  "provider": "azure"
 }
 ```
 
-Azure defaults to `en-US-JennyNeural` when no voice is configured. It sends escaped SSML to the regional Azure Speech REST endpoint and requests 24 kHz, 16-bit mono PCM WAV. Long scripts are split on paragraph, sentence, and word boundaries; chunks are requested in order, validated for compatible audio format, and joined into one WAV. The existing FFmpeg assembly encodes final MP4 narration as AAC. Azure returns the selected voice, duration, chunk count, character count, sample rate, and channel count as local metadata.
+The current Worldlayer default is `en-GB-RyanNeural` (English, United Kingdom), selected through the Phase 11.3 blind voice comparison. It applies only when neither `narration.voice` nor `WORLDLAYER_TTS_VOICE` is set. A voice specified in the job takes precedence over the environment setting; the environment setting takes precedence over this default. Azure sends escaped SSML to the regional Azure Speech REST endpoint and requests 24 kHz, 16-bit mono PCM WAV. Long scripts are split on paragraph, sentence, and word boundaries; chunks are requested in order, validated for compatible audio format, and joined into one WAV. The existing FFmpeg assembly encodes final MP4 narration as AAC. Azure returns the selected voice, duration, chunk count, character count, sample rate, and channel count as local metadata.
 
 The mock provider produces diagnostic tones without network access. OpenAI and Azure produce speech using their own credentials; neither falls back to mock after failure. Azure retries transient network, server, and rate-limit responses at most twice. Authentication, invalid voice/request, and clear quota errors fail without retry. For errors, check the key, matching region, configured voice, quota, and network access. Offline tests mock the Azure REST response. The short fixture is `public/jobs/video-job-azure-dev.json`.

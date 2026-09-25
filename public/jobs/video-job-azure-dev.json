@@ -26,8 +26,7 @@
   ],
   "narration": {
     "scriptFile": "/scripts/worldlayer-azure-dev.txt",
-    "provider": "azure",
-    "voice": "en-US-JennyNeural"
+    "provider": "azure"
   },
   "captionMode": "script",
   "timeline": { "minimumSceneDuration": 2 }

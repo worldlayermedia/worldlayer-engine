@@ -5,7 +5,7 @@ import { readDotenvValue } from '../read-dotenv-value.mjs';
 import { joinWavChunks, splitNarration } from './openai.mjs';
 
 const projectRoot = fileURLToPath(new URL('../../', import.meta.url));
-export const DEFAULT_AZURE_VOICE = 'en-US-JennyNeural';
+export const DEFAULT_AZURE_VOICE = 'en-GB-RyanNeural';
 const OUTPUT_FORMAT = 'riff-24khz-16bit-mono-pcm';
 const MAX_CHUNK_CHARACTERS = 1800;
 
