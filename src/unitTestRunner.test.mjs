@@ -68,6 +68,16 @@ test('normal unit test discovery includes OpenAI narration tests once', () => {
   );
 });
 
+test('normal unit test discovery includes Azure narration tests once', () => {
+  const files = discoverUnitTestFiles();
+  const azure = 'src/video/azureNarration.test.mjs';
+  assert.equal(files.filter((file) => file === azure).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === azure).length,
+    1,
+  );
+});
+
 test('normal unit test discovery includes OpenRouter script tests once', () => {
   const files = discoverUnitTestFiles();
   const script = 'scripts/worldlayer-content/openrouter-script.test.mjs';

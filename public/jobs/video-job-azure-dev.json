@@ -1,0 +1,34 @@
+{
+  "version": "0.2",
+  "project": "worldlayer",
+  "title": "Worldlayer Azure Narration Development Test",
+  "output": { "filename": "worldlayer-azure-dev", "format": "mp4" },
+  "video": {
+    "format": "youtube_16_9",
+    "resolution": { "width": 1920, "height": 1080 },
+    "fps": 30
+  },
+  "scenes": [
+    {
+      "id": "scene_01",
+      "name": "Toronto waterfront",
+      "camera": {
+        "longitude": -79.3832,
+        "latitude": 43.6532,
+        "altitude": 65000,
+        "heading": 20,
+        "pitch": -60,
+        "roll": 0,
+        "flightDuration": 2
+      },
+      "timing": { "mode": "weighted", "weight": 1 }
+    }
+  ],
+  "narration": {
+    "scriptFile": "/scripts/worldlayer-azure-dev.txt",
+    "provider": "azure",
+    "voice": "en-US-JennyNeural"
+  },
+  "captionMode": "script",
+  "timeline": { "minimumSceneDuration": 2 }
+}

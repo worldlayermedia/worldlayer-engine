@@ -101,8 +101,10 @@ export function validateVideoJob(job) {
           `narration.${field} is unsupported; provider settings belong outside the job.`,
         );
     }
-    string(job.narration.provider, 'narration.provider');
-    string(job.narration.voice, 'narration.voice');
+    if (job.narration.provider !== undefined)
+      string(job.narration.provider, 'narration.provider');
+    if (job.narration.voice !== undefined)
+      string(job.narration.voice, 'narration.voice');
     const hasText = job.narration.text !== undefined;
     const hasScriptFile = job.narration.scriptFile !== undefined;
     if (hasText === hasScriptFile)

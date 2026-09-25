@@ -6,6 +6,7 @@ import { loadNarrationScript } from './worldlayer-script-config.mjs';
 import { generateNarration } from './worldlayer-narration-providers.mjs';
 import { mediaDuration } from './worldlayer-media-assembly.mjs';
 import { projectRoot } from './worldlayer-job-path.mjs';
+import { readDotenvValue } from './read-dotenv-value.mjs';
 
 export async function prepareNarration(
   job,
@@ -38,7 +39,9 @@ export async function prepareNarration(
     };
   }
   if (!job.narration) return null;
-  const { provider, voice } = job.narration;
+  const provider = job.narration.provider || process.env.WORLDLAYER_TTS_PROVIDER || readDotenvValue('WORLDLAYER_TTS_PROVIDER', projectRoot);
+  if (!provider) throw new Error('Worldlayer: narration.provider or WORLDLAYER_TTS_PROVIDER is required.');
+  const voice = job.narration.voice;
   const text =
     job.narration.text ??
     loadNarrationScript(job.narration.scriptFile, scriptRoot);
@@ -102,8 +105,10 @@ export async function prepareNarration(
     filePath: outputPath,
     duration,
     provider,
-    voice,
+    voice: result.voice ?? voice,
     text,
+    sampleRate: result.sampleRate ?? null,
+    channels: result.channels ?? null,
     chunkCount: result.chunkCount ?? null,
     characterCount: result.characterCount ?? text.length,
     captionTimings: result.captionTimings ?? null,
