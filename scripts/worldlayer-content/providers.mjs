@@ -8,6 +8,7 @@ import {
   researchDigest,
 } from './schema.mjs';
 import { researchWeb } from './web-research.mjs';
+import { generateOpenRouterScript } from './openrouter-script.mjs';
 
 function inside(root, candidate) {
   const relative = path.relative(root, candidate);
@@ -106,6 +107,7 @@ export function approveWebResearch(packet, expectedDigest) {
 }
 
 export const scriptProviders = Object.freeze({
+  openrouter: generateOpenRouterScript,
   template: async ({ brief, packet, claims }) => {
     const sections = claims.map((claim, index) => ({
       id: `section_${String(index + 1).padStart(2, '0')}`,
@@ -125,7 +127,13 @@ export const scriptProviders = Object.freeze({
   },
 });
 
-export async function generateScript({ brief, packet, provider = 'template' }) {
+export async function generateScript({
+  brief,
+  packet,
+  provider = 'template',
+  model,
+  options = {},
+}) {
   validateTopicBrief(brief);
   if (!Object.hasOwn(scriptProviders, provider))
     throw new Error(`Worldlayer: script provider ${provider} is unsupported.`);
@@ -134,6 +142,12 @@ export async function generateScript({ brief, packet, provider = 'template' }) {
     throw new Error(
       'Worldlayer: no usable approved claims for script generation.',
     );
-  const script = await scriptProviders[provider]({ brief, packet, claims });
+  const script = await scriptProviders[provider]({
+    brief,
+    packet,
+    claims,
+    model,
+    options,
+  });
   return validateScriptArtifact(script, packet);
 }

@@ -57,6 +57,27 @@ test('normal unit test discovery includes trend tests once', () => {
   );
 });
 
+test('normal unit test discovery includes OpenAI narration tests once', () => {
+  const files = discoverUnitTestFiles();
+  const narration = 'src/video/openaiNarration.test.mjs';
+  assert.equal(files.filter((file) => file === narration).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === narration)
+      .length,
+    1,
+  );
+});
+
+test('normal unit test discovery includes OpenRouter script tests once', () => {
+  const files = discoverUnitTestFiles();
+  const script = 'scripts/worldlayer-content/openrouter-script.test.mjs';
+  assert.equal(files.filter((file) => file === script).length, 1);
+  assert.equal(
+    buildUnitTestPlan(files).parallel.filter((file) => file === script).length,
+    1,
+  );
+});
+
 test('unit runner serializes only GC-bracketed allocation microbenchmarks', () => {
   const ordinary = [
     'src/data/manager.test.mjs',

@@ -119,6 +119,11 @@ export function assertNarrationFits(
     );
 }
 
+export function assertCaptionsFit(captions, finalDuration, fps) {
+  if (captions?.length && captions.at(-1).end > finalDuration + 1 / fps + 1e-6)
+    throw new Error('Worldlayer: captions exceed the rendered video duration by more than one frame.');
+}
+
 export async function assembleMedia({
   job,
   config,
@@ -191,8 +196,7 @@ export async function assembleMedia({
     path.dirname(config.mp4Path),
     captionedFilename(job.output.filename),
   );
-  if (job.captions.at(-1).end > finalDuration + 1e-9)
-    throw new Error('Worldlayer: captions exceed the rendered video duration.');
+  assertCaptionsFit(job.captions, finalDuration, config.fps);
   fs.writeFileSync(srtPath, captionsToSrt(job.captions), 'utf8');
   const relativeSrt = path
     .relative(projectRoot, srtPath)

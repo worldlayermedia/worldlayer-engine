@@ -769,5 +769,17 @@
   "scripts/worldlayer-trends/topic-brief-validation.mjs",
   "scripts/worldlayer-trends/trends.test.mjs",
   "public/trends/canada-development-fixture.json",
-  "docs/WORLDLAYER-TRENDS.md"
+  "docs/WORLDLAYER-TRENDS.md",
+  "scripts/worldlayer-providers/openai.mjs",
+  "src/video/openaiNarration.test.mjs",
+  "docs/WORLDLAYER-NARRATION.md",
+  "public/jobs/video-job-openai-dev.json",
+  "scripts/worldlayer-llm/openrouter.mjs",
+  "scripts/worldlayer-llm/providers.mjs",
+  "scripts/worldlayer-content/script-prompt.mjs",
+  "scripts/worldlayer-content/openrouter-script.mjs",
+  "scripts/worldlayer-content/openrouter-script.test.mjs",
+  "docs/WORLDLAYER-LLM.md",
+  "public/content/toronto-llm-dev-brief.json",
+  "public/content/toronto-llm-dev-research-fixture.json"
 ]

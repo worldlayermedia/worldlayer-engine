@@ -50,6 +50,9 @@ export async function prepareContent({
   fixture,
   outputRoot,
   approvedFixture = false,
+  scriptProvider = 'template',
+  model,
+  scriptOptions,
 }) {
   validateTopicBrief(brief);
   const slug = contentSlug(brief.title);
@@ -80,6 +83,9 @@ export async function prepareContent({
     packet: activePacket,
     outputRoot,
     researchPath,
+    scriptProvider,
+    model,
+    scriptOptions,
   });
 }
 
@@ -106,6 +112,9 @@ async function prepareApprovedContent({
   outputRoot,
   researchPath,
   existingLedger,
+  scriptProvider = 'template',
+  model,
+  scriptOptions,
 }) {
   validateTopicBrief(brief);
   validateResearchPacket(packet);
@@ -117,7 +126,13 @@ async function prepareApprovedContent({
   const researchDirectory = outputDirectory(outputRoot, 'research');
   const { ledger, claimsPath } =
     existingLedger ?? writeLedger(packet, researchDirectory, slug);
-  const script = await generateScript({ brief, packet });
+  const script = await generateScript({
+    brief,
+    packet,
+    provider: scriptProvider,
+    model,
+    options: scriptOptions,
+  });
   const scriptsDirectory = outputDirectory(outputRoot, 'scripts');
   const scriptPath = writeArtifact(
     scriptsDirectory,
@@ -217,6 +232,9 @@ export async function continueWebResearch({
   expectedDigest,
   outputRoot,
   researchPath,
+  scriptProvider = 'template',
+  model,
+  scriptOptions,
 }) {
   validateTopicBrief(brief);
   if (packet.topic !== brief.title)
@@ -239,5 +257,8 @@ export async function continueWebResearch({
     packet: approved,
     outputRoot,
     researchPath: expectedPath,
+    scriptProvider,
+    model,
+    scriptOptions,
   });
 }

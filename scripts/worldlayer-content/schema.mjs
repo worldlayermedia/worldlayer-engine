@@ -331,5 +331,13 @@ export function validateScriptArtifact(script, packet) {
     script.text !== script.sections.map((section) => section.text).join('\n\n')
   )
     fail('script text must equal its ordered sections.');
+  if (script.generation !== undefined) {
+    object(script.generation, 'script generation');
+    string(script.generation.provider, 'script generation provider');
+    string(script.generation.model, 'script generation model');
+    string(script.generation.promptVersion, 'script prompt version');
+    if (Number.isNaN(Date.parse(script.generation.generatedAt)))
+      fail('script generatedAt must be a date.');
+  }
   return script;
 }

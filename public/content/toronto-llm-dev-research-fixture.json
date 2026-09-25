@@ -1,0 +1,55 @@
+{
+  "version": "0.1",
+  "topic": "Toronto Waterfront: LLM Development Check",
+  "researchQuestions": ["Where does Toronto sit within the Great Lakes?"],
+  "provenance": {
+    "provider": "fixture",
+    "fixture": true,
+    "notice": "Development fixture adapted from the Toronto research fixture; no live research was performed."
+  },
+  "sources": [
+    {
+      "id": "source_001",
+      "title": "Toronto geography fixture notes",
+      "publisher": "Worldlayer development fixture",
+      "localReference": "/content/toronto-research-fixture.json#notes.geography",
+      "sourceType": "fixture"
+    },
+    {
+      "id": "source_002",
+      "title": "Waterfront fixture notes",
+      "publisher": "Worldlayer development fixture",
+      "localReference": "/content/toronto-research-fixture.json#notes.waterfront",
+      "sourceType": "fixture"
+    }
+  ],
+  "findings": [
+    {
+      "text": "The lake provides Toronto's geographic setting.",
+      "claimIds": ["claim_001", "claim_002"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_001",
+      "text": "From a global view, Toronto occupies a small point on the northern edge of Lake Ontario. The surrounding water and land provide the geographic frame for a city whose local streets are almost invisible at this scale.",
+      "status": "verified",
+      "category": "VERIFIED_FACT",
+      "sourceIds": ["source_001"]
+    },
+    {
+      "id": "claim_002",
+      "text": "The Great Lakes form a regional setting that is much larger than Toronto itself. Lake Ontario lies beside the city, placing the downtown waterfront within a connected system of water, shores, and nearby communities.",
+      "status": "verified",
+      "category": "VERIFIED_FACT",
+      "sourceIds": ["source_001", "source_002"]
+    }
+  ],
+  "uncertainties": [
+    "This development fixture does not establish current statistics."
+  ],
+  "suggestedVisuals": [
+    { "description": "Globe to Lake Ontario context", "locationKey": "toronto" }
+  ],
+  "approval": { "status": "pending" }
+}

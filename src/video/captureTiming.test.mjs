@@ -9,7 +9,7 @@ import {
   timingDrift,
   formatTimingSummary,
 } from '../../scripts/worldlayer-capture-timing.mjs';
-import { editorialVideoFilter } from '../../scripts/worldlayer-media-assembly.mjs';
+import { editorialVideoFilter, assertCaptionsFit } from '../../scripts/worldlayer-media-assembly.mjs';
 import { resolveVideoTimeline } from './timelinePlanner.js';
 import { createSceneExecutor } from './sceneExecutor.js';
 
@@ -116,6 +116,11 @@ test('timing diagnostics show measured lead, tail and final drift', () => {
 test('one frame tolerance distinguishes acceptable and excessive drift', () => {
   assert.equal(timingDrift(5 + 1 / 30, 5, 30).withinOneFrame, true);
   assert.equal(timingDrift(5 + 2 / 30, 5, 30).withinOneFrame, false);
+});
+
+test('captions may end within one rounded output frame but not beyond it', () => {
+  assert.doesNotThrow(() => assertCaptionsFit([{ end: 18.3 }], 439 / 24, 24));
+  assert.throws(() => assertCaptionsFit([{ end: 18.4 }], 439 / 24, 24), /more than one frame/);
 });
 
 test('capture clock records first and last CDP frame timestamps', async () => {

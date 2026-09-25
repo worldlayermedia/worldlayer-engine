@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "title": "Toronto Waterfront: LLM Development Check",
+  "language": "en",
+  "targetDurationSeconds": 22,
+  "angle": "Introduce Toronto through its Lake Ontario setting and waterfront.",
+  "audience": "Curious viewers seeking a short geographic introduction.",
+  "locations": {
+    "toronto": { "longitude": -79.3832, "latitude": 43.6532 }
+  },
+  "keyQuestions": ["Where does Toronto sit within the Great Lakes?"],
+  "exclusions": ["Current rankings or population claims"],
+  "requiredPoints": ["Lake Ontario setting"]
+}

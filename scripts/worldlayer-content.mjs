@@ -54,6 +54,7 @@ export async function main(
     search,
     fetchPage,
     now,
+    scriptOptions,
   } = {},
 ) {
   const [briefFile, ...rest] = args;
@@ -65,6 +66,8 @@ export async function main(
   let digest;
   let approvedFixture = false;
   let render = false;
+  let scriptProvider = 'template';
+  let model;
   const seedUrls = [];
   for (let index = 0; index < rest.length; index++) {
     const arg = rest[index];
@@ -73,6 +76,8 @@ export async function main(
     else if (arg === '--digest') digest = rest[++index];
     else if (arg === '--approved-fixture') approvedFixture = true;
     else if (arg === '--render') render = true;
+    else if (arg === '--script-provider') scriptProvider = rest[++index];
+    else if (arg === '--model') model = rest[++index];
     else if (arg === '--source-url') seedUrls.push(rest[++index]);
     else if (!arg.startsWith('-') && !fixtureReference) fixtureReference = arg;
     else throw new Error(`Worldlayer: unsupported content argument ${arg}.`);
@@ -80,6 +85,14 @@ export async function main(
   if (!['fixture', 'web'].includes(provider))
     throw new Error(
       `Worldlayer: research provider ${provider} is unsupported.`,
+    );
+  if (!['template', 'openrouter'].includes(scriptProvider))
+    throw new Error(
+      `Worldlayer: script provider ${scriptProvider} is unsupported.`,
+    );
+  if (model && scriptProvider !== 'openrouter')
+    throw new Error(
+      'Worldlayer: --model requires --script-provider openrouter.',
     );
   if (render && provider === 'web' && !approvalFile)
     throw new Error(
@@ -126,6 +139,9 @@ export async function main(
       expectedDigest: digest,
       outputRoot,
       researchPath: artifact.path,
+      scriptProvider,
+      model,
+      scriptOptions,
     });
   } else {
     const fixture = loadContentFixture(fixtureReference, contentRoot);
@@ -134,6 +150,9 @@ export async function main(
       fixture,
       outputRoot,
       approvedFixture,
+      scriptProvider,
+      model,
+      scriptOptions,
     });
   }
   console.log(`[Worldlayer] Content stage: ${result.status}`);
